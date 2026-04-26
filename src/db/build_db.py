@@ -72,6 +72,26 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 );
 """
 
+DDL_YOJIJUKUGO_MINI = """
+CREATE TABLE IF NOT EXISTS yojijukugo_mini (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    word       TEXT    NOT NULL,
+    reading    TEXT    NOT NULL,
+    meaning    TEXT    NOT NULL,
+    source_id  INTEGER REFERENCES source_master(id),
+    source_raw TEXT
+);
+"""
+
+DDL_KOTOWAZA_MINI = """
+CREATE TABLE IF NOT EXISTS kotowaza_mini (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    word     TEXT    NOT NULL,
+    reading  TEXT    NOT NULL,
+    meaning  TEXT    NOT NULL
+);
+"""
+
 DDL_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_source_master_name      ON source_master(name);",
     "CREATE INDEX IF NOT EXISTS idx_yojijukugo_word         ON yojijukugo(word);",
@@ -80,6 +100,11 @@ DDL_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_yojijukugo_source_id    ON yojijukugo(source_id);",
     "CREATE INDEX IF NOT EXISTS idx_kotowaza_word           ON kotowaza(word);",
     "CREATE INDEX IF NOT EXISTS idx_kotowaza_reading        ON kotowaza(reading);",
+    "CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_word      ON yojijukugo_mini(word);",
+    "CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_reading   ON yojijukugo_mini(reading);",
+    "CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_source_id ON yojijukugo_mini(source_id);",
+    "CREATE INDEX IF NOT EXISTS idx_kotowaza_mini_word    ON kotowaza_mini(word);",
+    "CREATE INDEX IF NOT EXISTS idx_kotowaza_mini_reading ON kotowaza_mini(reading);",
 ]
 
 # --------------------------------------------------------------------------- #
@@ -116,10 +141,26 @@ def init_db(conn: sqlite3.Connection) -> None:
     conn.execute("PRAGMA foreign_keys = ON;")
     for ddl in (DDL_SOURCE_MASTER, DDL_YOJIJUKUGO, DDL_KOTOWAZA):
         conn.execute(ddl)
-    for idx in DDL_INDEXES:
+    # 通常版のみのインデックス（mini版を除外）
+    normal_indexes = [idx for idx in DDL_INDEXES if "_mini" not in idx]
+    for idx in normal_indexes:
         conn.execute(idx)
     conn.commit()
     log.info("テーブル・インデックスの初期化完了")
+
+
+def init_db_mini(conn: sqlite3.Connection) -> None:
+    """Mini版テーブル・インデックスを作成する。source_master は source_db から共有。"""
+    conn.execute("PRAGMA foreign_keys = ON;")
+    for ddl in (DDL_SOURCE_MASTER, DDL_YOJIJUKUGO_MINI, DDL_KOTOWAZA_MINI):
+        conn.execute(ddl)
+    # mini版インデックスのみ作成（インデックスリストから mini版を抽出）
+    mini_indexes = [idx for idx in DDL_INDEXES if "_mini" in idx]
+    mini_indexes.insert(0, DDL_INDEXES[0])  # source_master インデックスも追加
+    for idx in mini_indexes:
+        conn.execute(idx)
+    conn.commit()
+    log.info("Mini版テーブル・インデックスの初期化完了")
 
 
 # --------------------------------------------------------------------------- #
@@ -289,17 +330,127 @@ def load_kotowaza(conn: sqlite3.Connection, path: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# yojijukugo_mini 投入
+# --------------------------------------------------------------------------- #
+
+def load_yojijukugo_mini(
+    conn: sqlite3.Connection,
+    path: Path,
+    source_map: dict[str, int],
+) -> None:
+    """yojijukugo.txt を読み込んで yojijukugo_mini テーブルに投入する。
+    mini版は kanken_level / usage / url / created_at を除外。
+    """
+    inserted = skipped = 0
+
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = line.strip()
+        if not line:
+            continue
+
+        parts = line.split("|")
+        if len(parts) < 7:
+            skipped += 1
+            continue
+
+        word, reading, meaning_raw, source_field = (
+            parts[0].strip(),
+            parts[1].strip(),
+            parts[2].strip(),
+            parts[3].strip(),
+        )
+
+        # 必須フィールド検証
+        if not all((word, reading, meaning_raw)):
+            skipped += 1
+            continue
+
+        meaning = meaning_raw.replace("\\n", "\n")
+
+        # source_id を解決
+        source_id: int | None = None
+        if source_field:
+            first_name = _first_source_name(source_field)
+            source_id = source_map.get(first_name)
+
+        cur = conn.execute(
+            """
+            INSERT INTO yojijukugo_mini
+                (word, reading, meaning, source_id, source_raw)
+            VALUES (?, ?, ?, ?, ?);
+            """,
+            (word, reading, meaning, source_id, source_field),
+        )
+        if cur.rowcount:
+            inserted += 1
+
+    conn.commit()
+    log.info("yojijukugo_mini: %d 件挿入 / %d 件バリデーションスキップ", inserted, skipped)
+
+
+# --------------------------------------------------------------------------- #
+# kotowaza_mini 投入
+# --------------------------------------------------------------------------- #
+
+def load_kotowaza_mini(conn: sqlite3.Connection, path: Path) -> None:
+    """kotowaza.txt を読み込んで kotowaza_mini テーブルに投入する。
+    mini版は variant / url / created_at を除外。
+    """
+    inserted = skipped = 0
+
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = line.strip()
+        if not line:
+            continue
+
+        parts = line.split("|")
+        if len(parts) < 5:
+            skipped += 1
+            continue
+
+        word, reading, meaning_raw = (
+            parts[0].strip(),
+            parts[1].strip(),
+            parts[2].strip(),
+        )
+
+        # 必須フィールド検証
+        if not all((word, reading, meaning_raw)):
+            skipped += 1
+            continue
+
+        meaning = meaning_raw.replace("\\n", "\n")
+
+        cur = conn.execute(
+            """
+            INSERT INTO kotowaza_mini
+                (word, reading, meaning)
+            VALUES (?, ?, ?);
+            """,
+            (word, reading, meaning),
+        )
+        if cur.rowcount:
+            inserted += 1
+
+    conn.commit()
+    log.info("kotowaza_mini: %d 件挿入 / %d 件バリデーションスキップ", inserted, skipped)
+
+
+# --------------------------------------------------------------------------- #
 # エントリポイント
 # --------------------------------------------------------------------------- #
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="四字熟語・ことわざDBを構築する")
     parser.add_argument("--db", default="data/jpword.db", help="SQLite DBファイルパス")
+    parser.add_argument("--db-mini", default="data/jpword_mini.db", help="Mini版DBファイルパス")
+    parser.add_argument("--skip-mini", action="store_true", help="Mini版DBの作成をスキップ")
     parser.add_argument("--yojijukugo", default="data/yojijukugo.txt", help="四字熟語ファイルパス")
     parser.add_argument("--kotowaza", default="data/kotowaza.txt", help="ことわざファイルパス")
     args = parser.parse_args()
 
     db_path = Path(args.db)
+    db_mini_path = Path(args.db_mini) if not args.skip_mini else None
     yoji_path = Path(args.yojijukugo)
     koto_path = Path(args.kotowaza)
 
@@ -309,7 +460,10 @@ def main() -> None:
             sys.exit(1)
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    if db_mini_path:
+        db_mini_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # 通常版DB作成
     with sqlite3.connect(db_path) as conn:
         init_db(conn)
         source_map = load_source_master(conn, yoji_path)
@@ -317,6 +471,15 @@ def main() -> None:
         load_kotowaza(conn, koto_path)
 
     log.info("完了: %s", db_path)
+
+    # Mini版DB作成
+    if db_mini_path:
+        with sqlite3.connect(db_mini_path) as conn:
+            init_db_mini(conn)
+            source_map = load_source_master(conn, yoji_path)
+            load_yojijukugo_mini(conn, yoji_path, source_map)
+            load_kotowaza_mini(conn, koto_path)
+        log.info("完了: %s", db_mini_path)
 
 
 if __name__ == "__main__":

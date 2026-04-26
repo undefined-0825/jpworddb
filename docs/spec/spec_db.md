@@ -9,12 +9,27 @@
 
 ## 2. DB 概要
 
+### 2.1 通常版（`data/jpword.db`）
+
+全カラムを含む完全版。
+
 | 項目 | 値 |
 |------|-----|
 | DBMS | SQLite 3 |
 | ファイルパス | `data/jpword.db` |
 | 文字コード | UTF-8 |
 | テーブル数 | 3（`source_master` / `yojijukugo` / `kotowaza`） |
+
+### 2.2 Mini版（`data/jpword_mini.db`）
+
+サイズ削減版。URL・作成日時・メタ情報は除外。
+
+| 項目 | 値 |
+|------|-----|
+| DBMS | SQLite 3 |
+| ファイルパス | `data/jpword_mini.db` |
+| 文字コード | UTF-8 |
+| テーブル数 | 3（`source_master` / `yojijukugo_mini` / `kotowaza_mini`） |
 
 ---
 
@@ -93,7 +108,59 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
 
 ---
 
-### 4.2 `kotowaza`（ことわざ）
+### 4.3 `yojijukugo_mini`（四字熟語・Mini版）
+
+サイズ最適化版。`yojijukugo` から `kanken_level` / `usage` / `url` / `created_at` を除外。
+
+```sql
+CREATE TABLE IF NOT EXISTS yojijukugo_mini (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    word       TEXT    NOT NULL,
+    reading    TEXT    NOT NULL,
+    meaning    TEXT    NOT NULL,
+    source_id  INTEGER REFERENCES source_master(id),
+    source_raw TEXT
+);
+```
+
+#### カラム説明
+
+| カラム名 | 型 | NULL | 説明 |
+|----------|----|----|------|
+| `id` | INTEGER | NOT NULL | 主キー（自動採番） |
+| `word` | TEXT | NOT NULL | 四字熟語（例：臥薪嘗胆） |
+| `reading` | TEXT | NOT NULL | よみがな（ひらがな） |
+| `meaning` | TEXT | NOT NULL | 意味の説明文。改行は `\n` で格納 |
+| `source_id` | INTEGER | NULL 可 | `source_master.id` への外部キー。出典不明の場合は `NULL` |
+| `source_raw` | TEXT | NULL 可 | 出典の生テキスト。不明の場合は空文字 |
+
+---
+
+### 4.4 `kotowaza_mini`（ことわざ・Mini版）
+
+サイズ最適化版。`kotowaza` から `variant` / `url` / `created_at` を除外。
+
+```sql
+CREATE TABLE IF NOT EXISTS kotowaza_mini (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    word     TEXT    NOT NULL,
+    reading  TEXT    NOT NULL,
+    meaning  TEXT    NOT NULL
+);
+```
+
+#### カラム説明
+
+| カラム名 | 型 | NULL | 説明 |
+|----------|----|----|------|
+| `id` | INTEGER | NOT NULL | 主キー（自動採番） |
+| `word` | TEXT | NOT NULL | ことわざ（例：生き馬の目を抜く） |
+| `reading` | TEXT | NOT NULL | よみがな（ひらがな） |
+| `meaning` | TEXT | NOT NULL | 意味の説明文。改行は `\n` で格納 |
+
+---
+
+### 4.5 `kotowaza`（ことわざ）
 
 ```sql
 CREATE TABLE IF NOT EXISTS kotowaza (
@@ -123,6 +190,8 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 
 ## 5. インデックス定義
 
+### 5.1 通常版インデックス
+
 ```sql
 -- source_master
 CREATE INDEX IF NOT EXISTS idx_source_master_name ON source_master(name);
@@ -136,6 +205,22 @@ CREATE INDEX IF NOT EXISTS idx_yojijukugo_source_id    ON yojijukugo(source_id);
 -- kotowaza
 CREATE INDEX IF NOT EXISTS idx_kotowaza_word    ON kotowaza(word);
 CREATE INDEX IF NOT EXISTS idx_kotowaza_reading ON kotowaza(reading);
+```
+
+### 5.2 Mini版インデックス
+
+```sql
+-- source_master（共通）
+CREATE INDEX IF NOT EXISTS idx_source_master_name ON source_master(name);
+
+-- yojijukugo_mini
+CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_word      ON yojijukugo_mini(word);
+CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_reading   ON yojijukugo_mini(reading);
+CREATE INDEX IF NOT EXISTS idx_yojijukugo_mini_source_id ON yojijukugo_mini(source_id);
+
+-- kotowaza_mini
+CREATE INDEX IF NOT EXISTS idx_kotowaza_mini_word    ON kotowaza_mini(word);
+CREATE INDEX IF NOT EXISTS idx_kotowaza_mini_reading ON kotowaza_mini(reading);
 ```
 
 ---
@@ -203,9 +288,21 @@ DB投入時に実際の改行文字（U+000A）へ変換して格納する。
 |------|-----|
 | スクリプトパス | `src/db/build_db.py` |
 | 実行方法 | `python src/db/build_db.py` |
-| オプション | `--db`（DBファイルパス、デフォルト: `data/jpword.db`） |
+| オプション | `--db`（通常版DBファイルパス、デフォルト: `data/jpword.db`） |
+| オプション | `--db-mini`（Mini版DBファイルパス、デフォルト: `data/jpword_mini.db`） |
 | オプション | `--yojijukugo`（四字熟語ファイルパス、デフォルト: `data/yojijukugo.txt`） |
 | オプション | `--kotowaza`（ことわざファイルパス、デフォルト: `data/kotowaza.txt`） |
+| オプション | `--skip-mini`（Mini版DBの作成をスキップ） |
+
+### 7.1 実行例
+
+```bash
+# 通常版 + Mini版を両方作成
+python src/db/build_db.py
+
+# Mini版をスキップ（通常版のみ）
+python src/db/build_db.py --skip-mini
+```
 
 ---
 
@@ -215,3 +312,4 @@ DB投入時に実際の改行文字（U+000A）へ変換して格納する。
 |------|----------|
 | 2026-04-26 | 初版作成 |
 | 2026-04-26 | DBパスを `jpword.db` に変更・`source_master` テーブル追加・`yojijukugo` に `source_id` / `source_raw` カラム追加 |
+| 2026-04-27 | Mini版DB仕様追加（`jpword_mini.db`）・`yojijukugo_mini` / `kotowaza_mini` テーブル定義追加 |
