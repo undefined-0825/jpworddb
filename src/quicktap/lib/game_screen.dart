@@ -6,7 +6,8 @@ import 'result_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final GameMode mode;
-  const GameScreen({super.key, required this.mode});
+  final PlayMode playMode;
+  const GameScreen({super.key, required this.mode, required this.playMode});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -37,7 +38,7 @@ class _GameScreenState extends State<GameScreen> {
       _loading = false;
       _state.isRunning = true;
     });
-    _startTimer();
+    if (widget.playMode == PlayMode.timeattack) _startTimer();
   }
 
   void _startTimer() {
@@ -55,11 +56,19 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _goToResult() {
+    final initialTime = widget.playMode == PlayMode.relax
+        ? null
+        : (widget.mode == GameMode.kotowaza ? 180 : 60);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            ResultScreen(score: _state.score, totalAsked: _state.totalAsked),
+        builder: (_) => ResultScreen(
+          score: _state.score,
+          totalAsked: _state.totalAsked,
+          mode: widget.mode,
+          playMode: widget.playMode,
+          initialTime: initialTime,
+        ),
       ),
     );
   }
@@ -72,18 +81,20 @@ class _GameScreenState extends State<GameScreen> {
         _state.score++;
         setState(() => _answerResult = true);
         Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted) setState(() {
-            _answerResult = null;
-            _state.nextQuestion();
-          });
+          if (mounted)
+            setState(() {
+              _answerResult = null;
+              _state.nextQuestion();
+            });
         });
       } else {
         setState(() => _answerResult = false);
         Future.delayed(const Duration(milliseconds: 700), () {
-          if (mounted) setState(() {
-            _answerResult = null;
-            _state.resetInput();
-          });
+          if (mounted)
+            setState(() {
+              _answerResult = null;
+              _state.resetInput();
+            });
         });
       }
     }
@@ -122,118 +133,156 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // ヘッダー（時間・スコア）
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 children: [
-                  _InfoChip(
-                    label: '残り時間',
-                    value: '${_state.remainingTime}秒',
-                    valueColor: timeColor,
+                  // ヘッダー（時間・スコア）
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (widget.playMode == PlayMode.timeattack)
+                        _InfoChip(
+                          label: '残り時間',
+                          value: '${_state.remainingTime}秒',
+                          valueColor: timeColor,
+                        )
+                      else
+                        _InfoChip(
+                          label: 'モード',
+                          value: 'リラックス',
+                          valueColor: const Color(0xFF4E342E),
+                        ),
+                      _InfoChip(
+                        label: 'スコア',
+                        value: '${_state.score}',
+                        valueColor: const Color(0xFF4E342E),
+                      ),
+                    ],
                   ),
-                  _InfoChip(
-                    label: 'スコア',
-                    value: '${_state.score}',
-                    valueColor: const Color(0xFF4E342E),
+                  const SizedBox(height: 24),
+
+                  const SizedBox(height: 24),
+
+                  // 入力エリア
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 8,
+                    ),
+                    constraints: const BoxConstraints(minHeight: 56),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFEBE9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFF6D4C41),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _state.selectedTiles
+                          .map((t) => _CharBubble(char: t.char, filled: true))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // シャッフルボタン群
+                  Expanded(
+                    child: Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: _state.shuffledTiles.map((tile) {
+                        return _TileButton(
+                          tile: tile,
+                          onTap: () => _onTileTap(tile),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // リセット・スキップ・終了ボタン
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _answerResult != null
+                            ? null
+                            : () => setState(() => _state.resetInput()),
+                        icon: const Icon(
+                          Icons.refresh,
+                          color: Color(0xFF795548),
+                        ),
+                        label: const Text(
+                          'リセット',
+                          style: TextStyle(
+                            color: Color(0xFF795548),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      TextButton.icon(
+                        onPressed: _answerResult != null ? null : _onSkip,
+                        icon: const Icon(
+                          Icons.skip_next,
+                          color: Color(0xFF9E9E9E),
+                        ),
+                        label: const Text(
+                          'スキップ',
+                          style: TextStyle(
+                            color: Color(0xFF9E9E9E),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      if (widget.playMode == PlayMode.relax) ...[
+                        const SizedBox(width: 16),
+                        TextButton.icon(
+                          onPressed: () {
+                            _state.isRunning = false;
+                            _goToResult();
+                          },
+                          icon: const Icon(
+                            Icons.stop_circle_outlined,
+                            color: Color(0xFFD32F2F),
+                          ),
+                          label: const Text(
+                            '終了',
+                            style: TextStyle(
+                              color: Color(0xFFD32F2F),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  // 意味（最下部）
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBCAAA4)),
+                    ),
+                    child: Text(
+                      q.meaning.isNotEmpty ? q.meaning : '（ヒントなし）',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // ヒント
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFBCAAA4)),
-                ),
-                child: Text(
-                  q.meaning.isNotEmpty ? q.meaning : '（ヒントなし）',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF5D4037),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 入力エリア
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
-                ),
-                constraints: const BoxConstraints(minHeight: 56),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFEBE9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFF6D4C41),
-                    width: 1.5,
-                  ),
-                ),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _state.selectedTiles
-                      .map((t) => _CharBubble(char: t.char, filled: true))
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // シャッフルボタン群
-              Expanded(
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: _state.shuffledTiles.map((tile) {
-                    return _TileButton(
-                      tile: tile,
-                      onTap: () => _onTileTap(tile),
-                    );
-                  }).toList(),
-                ),
-              ),
-
-              // リセット・スキップボタン
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton.icon(
-                    onPressed: _answerResult != null
-                        ? null
-                        : () => setState(() => _state.resetInput()),
-                    icon: const Icon(Icons.refresh, color: Color(0xFF795548)),
-                    label: const Text(
-                      'リセット',
-                      style: TextStyle(color: Color(0xFF795548), fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  TextButton.icon(
-                    onPressed: _answerResult != null ? null : _onSkip,
-                    icon: const Icon(
-                      Icons.skip_next,
-                      color: Color(0xFF9E9E9E),
-                    ),
-                    label: const Text(
-                      'スキップ',
-                      style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
           ),
           // ○/× オーバーレイ
           if (_answerResult != null)

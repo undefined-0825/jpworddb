@@ -2,6 +2,8 @@ import 'dart:math';
 
 enum GameMode { yoji, kotowaza }
 
+enum PlayMode { timeattack, relax }
+
 class Question {
   final int id;
   final String word;

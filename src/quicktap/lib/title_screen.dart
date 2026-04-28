@@ -76,10 +76,39 @@ class _TitleScreenState extends State<TitleScreen> {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => GameScreen(mode: _mode),
+                        builder: (_) => GameScreen(
+                          mode: _mode,
+                          playMode: PlayMode.timeattack,
+                        ),
                       ),
                     ),
-                    child: const Text('スタート'),
+                    child: const Text('タイムアタック'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFBCAAA4),
+                      foregroundColor: const Color(0xFF4E342E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            GameScreen(mode: _mode, playMode: PlayMode.relax),
+                      ),
+                    ),
+                    child: const Text('リラックス'),
                   ),
                 ),
               ],

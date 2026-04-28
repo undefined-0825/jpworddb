@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
+import 'game_screen.dart';
+import 'game_state.dart';
 import 'title_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   final int score;
   final int totalAsked;
+  final GameMode mode;
+  final PlayMode playMode;
+  final int? initialTime;
 
   const ResultScreen({
     super.key,
     required this.score,
     required this.totalAsked,
+    required this.mode,
+    required this.playMode,
+    required this.initialTime,
   });
 
   @override
@@ -40,8 +48,35 @@ class ResultScreen extends StatelessWidget {
                   value: '${accuracy.toStringAsFixed(1)} %',
                 ),
                 const SizedBox(height: 16),
-                _ResultCard(label: 'プレイ時間', value: '60 秒'),
+                if (playMode == PlayMode.timeattack)
+                  _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),
                 const SizedBox(height: 48),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D4C41),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            GameScreen(mode: mode, playMode: playMode),
+                      ),
+                    ),
+                    child: const Text('再挑戦'),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: 52,
