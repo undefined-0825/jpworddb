@@ -16,6 +16,7 @@ class _GameScreenState extends State<GameScreen> {
   late GameState _state;
   Timer? _timer;
   bool _loading = true;
+  bool? _answerResult; // true=○, false=×, null=非表示
 
   @override
   void initState() {
@@ -64,20 +65,35 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onTileTap(CharTile tile) {
-    if (!_state.isRunning) return;
-    setState(() {
-      _state.tapTile(tile);
-      if (_state.selectedTiles.length == _state.currentQuestion!.word.length) {
-        if (_state.checkAnswer()) {
-          _state.score++;
-          _state.nextQuestion();
-        } else {
-          // 不正解：入力リセット
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) setState(() => _state.resetInput());
+    if (!_state.isRunning || _answerResult != null) return;
+    setState(() => _state.tapTile(tile));
+    if (_state.selectedTiles.length == _state.currentQuestion!.word.length) {
+      if (_state.checkAnswer()) {
+        _state.score++;
+        setState(() => _answerResult = true);
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) setState(() {
+            _answerResult = null;
+            _state.nextQuestion();
           });
-        }
+        });
+      } else {
+        setState(() => _answerResult = false);
+        Future.delayed(const Duration(milliseconds: 700), () {
+          if (mounted) setState(() {
+            _answerResult = null;
+            _state.resetInput();
+          });
+        });
       }
+    }
+  }
+
+  void _onSkip() {
+    if (!_state.isRunning || _answerResult != null) return;
+    setState(() {
+      _state.resetInput();
+      _state.nextQuestion();
     });
   }
 
@@ -103,7 +119,9 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF3E0),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -186,18 +204,59 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
 
-              // リセットボタン
-              TextButton.icon(
-                onPressed: () => setState(() => _state.resetInput()),
-                icon: const Icon(Icons.refresh, color: Color(0xFF795548)),
-                label: const Text(
-                  'リセット',
-                  style: TextStyle(color: Color(0xFF795548), fontSize: 16),
-                ),
+              // リセット・スキップボタン
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    onPressed: _answerResult != null
+                        ? null
+                        : () => setState(() => _state.resetInput()),
+                    icon: const Icon(Icons.refresh, color: Color(0xFF795548)),
+                    label: const Text(
+                      'リセット',
+                      style: TextStyle(color: Color(0xFF795548), fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  TextButton.icon(
+                    onPressed: _answerResult != null ? null : _onSkip,
+                    icon: const Icon(
+                      Icons.skip_next,
+                      color: Color(0xFF9E9E9E),
+                    ),
+                    label: const Text(
+                      'スキップ',
+                      style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ),
+          ),
+          // ○/× オーバーレイ
+          if (_answerResult != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  color: Colors.black12,
+                  child: Center(
+                    child: Text(
+                      _answerResult! ? '○' : '×',
+                      style: TextStyle(
+                        fontSize: 140,
+                        fontWeight: FontWeight.bold,
+                        color: _answerResult!
+                            ? const Color(0xFF388E3C)
+                            : const Color(0xFFD32F2F),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
