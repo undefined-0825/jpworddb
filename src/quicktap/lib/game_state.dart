@@ -7,10 +7,16 @@ enum PlayMode { timeattack, relax }
 class Question {
   final int id;
   final String word;
+  final String reading;
   final String meaning;
   late final List<_CharItem> _chars;
 
-  Question({required this.id, required this.word, required this.meaning}) {
+  Question({
+    required this.id,
+    required this.word,
+    required this.reading,
+    required this.meaning,
+  }) {
     _chars = word
         .split('')
         .indexed
@@ -102,6 +108,7 @@ class GameState {
     currentQuestion = Question(
       id: row['id'] as int,
       word: row['word'] as String,
+      reading: row['reading'] as String? ?? '',
       meaning: row['meaning'] as String? ?? '',
     );
 

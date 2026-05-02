@@ -26,7 +26,7 @@ class DbHelper {
   static Future<List<Map<String, dynamic>>> fetchAllYoji() async {
     final db = await database;
     return db.rawQuery(
-      "SELECT id, word, meaning FROM yojijukugo_mini "
+      "SELECT id, word, reading, meaning FROM yojijukugo_mini "
       "WHERE word IS NOT NULL AND word != '' AND length(word) >= 2",
     );
   }
@@ -34,7 +34,7 @@ class DbHelper {
   static Future<List<Map<String, dynamic>>> fetchAllKotowaza() async {
     final db = await database;
     return db.rawQuery(
-      "SELECT id, word, meaning FROM kotowaza_mini "
+      "SELECT id, word, reading, meaning FROM kotowaza_mini "
       "WHERE word IS NOT NULL AND word != '' AND length(word) >= 2",
     );
   }

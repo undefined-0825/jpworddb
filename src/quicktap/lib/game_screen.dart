@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'app_settings.dart';
 import 'db_helper.dart';
 import 'game_state.dart';
 import 'result_screen.dart';
@@ -15,14 +16,23 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   late GameState _state;
+  final _settings = AppSettings.instance;
   Timer? _timer;
   bool _loading = true;
-  bool? _answerResult; // true=○, false=×, null=非表示
+  bool? _answerResult; // true=◁E false=ÁE null=非表示
+  String? _revealWord; // 正解/スキチE�E時に表示する語句
+  String? _revealReading; // 正解/スキチE�E時に表示する読み
+
+  void _onFontSizeChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
     _state = GameState(mode: widget.mode);
+    _settings.fontSizeOption.addListener(_onFontSizeChanged);
     _loadAndStart();
   }
 
@@ -74,18 +84,33 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onTileTap(CharTile tile) {
-    if (!_state.isRunning || _answerResult != null) return;
-    setState(() => _state.tapTile(tile));
+    if (!_state.isRunning || _answerResult != null || _revealWord != null)
+      return;
+    setState(() {
+      _state.tapTile(tile);
+
+      // 最後かめE斁E��目の入力時は、残り1斁E��を自動で配置する、E
+      final wordLength = _state.currentQuestion!.word.length;
+      if (wordLength >= 2 && _state.selectedTiles.length == wordLength - 1) {
+        CharTile? remaining;
+        for (final t in _state.shuffledTiles) {
+          if (!t.selected) {
+            remaining = t;
+            break;
+          }
+        }
+        if (remaining != null) {
+          _state.tapTile(remaining);
+        }
+      }
+    });
     if (_state.selectedTiles.length == _state.currentQuestion!.word.length) {
       if (_state.checkAnswer()) {
         _state.score++;
-        setState(() => _answerResult = true);
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted)
-            setState(() {
-              _answerResult = null;
-              _state.nextQuestion();
-            });
+        setState(() {
+          _answerResult = true;
+          _revealWord = _state.currentQuestion!.word;
+          _revealReading = _state.currentQuestion!.reading;
         });
       } else {
         setState(() => _answerResult = false);
@@ -101,43 +126,57 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onSkip() {
-    if (!_state.isRunning || _answerResult != null) return;
+    if (!_state.isRunning || _answerResult != null || _revealWord != null)
+      return;
+    final word = _state.currentQuestion!.word;
+    final reading = _state.currentQuestion!.reading;
     setState(() {
       _state.resetInput();
-      _state.nextQuestion();
+      _revealWord = word;
+      _revealReading = reading;
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _settings.fontSizeOption.removeListener(_onFontSizeChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFFAF3E0),
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset('assets/background.png', fit: BoxFit.fill),
+            ),
+            const Center(child: CircularProgressIndicator()),
+          ],
+        ),
       );
     }
 
     final q = _state.currentQuestion!;
+    final font = _settings.fontSizeOption.value;
     final timeColor = _state.remainingTime <= 10
         ? Colors.red
         : const Color(0xFF4E342E);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF3E0),
       body: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset('assets/background.png', fit: BoxFit.fill),
+          ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ヘッダー（時間・スコア）
+                  // ヘッダー�E�時間�Eスコア�E�E
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -162,7 +201,24 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  const SizedBox(height: 24),
+                  // 意味�E�上部�E�E
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBCAAA4)),
+                    ),
+                    child: Text(
+                      q.meaning.isNotEmpty ? q.meaning : 'ヒントなし！',
+                      style: TextStyle(
+                        fontSize: font.meaningTextSize,
+                        color: const Color(0xFF5D4037),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
                   // 入力エリア
                   Container(
@@ -184,13 +240,20 @@ class _GameScreenState extends State<GameScreen> {
                       spacing: 6,
                       runSpacing: 6,
                       children: _state.selectedTiles
-                          .map((t) => _CharBubble(char: t.char, filled: true))
+                          .map(
+                            (t) => _CharBubble(
+                              char: t.char,
+                              filled: true,
+                              size: font.bubbleBoxSize,
+                              charSize: font.bubbleCharSize,
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // シャッフルボタン群
+                  // シャチE��ルボタン群
                   Expanded(
                     child: Wrap(
                       spacing: 10,
@@ -199,13 +262,15 @@ class _GameScreenState extends State<GameScreen> {
                       children: _state.shuffledTiles.map((tile) {
                         return _TileButton(
                           tile: tile,
+                          size: font.tileBoxSize,
+                          charSize: font.tileCharSize,
                           onTap: () => _onTileTap(tile),
                         );
                       }).toList(),
                     ),
                   ),
 
-                  // リセット・スキップ・終了ボタン
+                  // リセチE��・スキチE�E・終亁E�Eタン
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -262,44 +327,88 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ],
                   ),
-
-                  // 意味（最下部）
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBCAAA4)),
-                    ),
-                    child: Text(
-                      q.meaning.isNotEmpty ? q.meaning : '（ヒントなし）',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF5D4037),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
-          // ○/× オーバーレイ
+          // ◁EÁEオーバ�Eレイ�E�正解・不正解フィードバチE���E�E
           if (_answerResult != null)
             Positioned.fill(
-              child: IgnorePointer(
+              child: GestureDetector(
+                onTap: _answerResult!
+                    ? () {
+                        setState(() {
+                          _answerResult = null;
+                          _revealWord = null;
+                          _revealReading = null;
+                          _state.nextQuestion();
+                        });
+                      }
+                    : null,
                 child: Container(
-                  color: Colors.black12,
+                  color: Colors.black26,
                   child: Center(
-                    child: Text(
-                      _answerResult! ? '○' : '×',
-                      style: TextStyle(
-                        fontSize: 140,
-                        fontWeight: FontWeight.bold,
-                        color: _answerResult!
-                            ? const Color(0xFF388E3C)
-                            : const Color(0xFFD32F2F),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _answerResult! ? '○' : '×',
+                          style: TextStyle(
+                            fontSize: 120,
+                            fontWeight: FontWeight.bold,
+                            color: _answerResult!
+                                ? const Color(0xFF388E3C)
+                                : const Color(0xFFD32F2F),
+                          ),
+                        ),
+                        if (_answerResult! && _revealWord != null)
+                          ..._wordRevealWidgets(),
+                        if (_answerResult!)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 20),
+                            child: Text(
+                              'タップして次へ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // スキチE�E時�E答え表示オーバ�Eレイ
+          if (_revealWord != null && _answerResult == null)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _revealWord = null;
+                    _revealReading = null;
+                    _state.nextQuestion();
+                  });
+                },
+                child: Container(
+                  color: Colors.black26,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ..._wordRevealWidgets(),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 20),
+                          child: Text(
+                            'タップして次へ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -308,6 +417,36 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _wordRevealWidgets() {
+    return [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(230),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _revealWord ?? '',
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            if (_revealReading != null && _revealReading!.isNotEmpty)
+              Text(
+                '（${_revealReading!}）',
+                style: const TextStyle(fontSize: 18, color: Colors.black54),
+              ),
+          ],
+        ),
+      ),
+    ];
   }
 }
 
@@ -345,9 +484,16 @@ class _InfoChip extends StatelessWidget {
 
 class _TileButton extends StatelessWidget {
   final CharTile tile;
+  final double size;
+  final double charSize;
   final VoidCallback onTap;
 
-  const _TileButton({required this.tile, required this.onTap});
+  const _TileButton({
+    required this.tile,
+    required this.size,
+    required this.charSize,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -357,8 +503,8 @@ class _TileButton extends StatelessWidget {
         opacity: tile.selected ? 0.3 : 1.0,
         duration: const Duration(milliseconds: 150),
         child: Container(
-          width: 60,
-          height: 60,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             color: tile.selected ? Colors.grey[300] : const Color(0xFF6D4C41),
             borderRadius: BorderRadius.circular(10),
@@ -376,7 +522,7 @@ class _TileButton extends StatelessWidget {
             child: Text(
               tile.char,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: charSize,
                 fontWeight: FontWeight.bold,
                 color: tile.selected ? Colors.grey : Colors.white,
               ),
@@ -391,14 +537,21 @@ class _TileButton extends StatelessWidget {
 class _CharBubble extends StatelessWidget {
   final String char;
   final bool filled;
+  final double size;
+  final double charSize;
 
-  const _CharBubble({required this.char, required this.filled});
+  const _CharBubble({
+    required this.char,
+    required this.filled,
+    required this.size,
+    required this.charSize,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: filled ? const Color(0xFF8D6E63) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
@@ -407,8 +560,8 @@ class _CharBubble extends StatelessWidget {
       child: Center(
         child: Text(
           char,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: charSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),

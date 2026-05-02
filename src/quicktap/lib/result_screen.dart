@@ -24,86 +24,94 @@ class ResultScreen extends StatelessWidget {
     final accuracy = totalAsked == 0 ? 0.0 : (score / totalAsked * 100);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF3E0),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  '結果',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4E342E),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                _ResultCard(label: 'スコア（正解数）', value: '$score 問'),
-                const SizedBox(height: 16),
-                _ResultCard(
-                  label: '正答率',
-                  value: '${accuracy.toStringAsFixed(1)} %',
-                ),
-                const SizedBox(height: 16),
-                if (playMode == PlayMode.timeattack)
-                  _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),
-                const SizedBox(height: 48),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D4C41),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset('assets/background.png', fit: BoxFit.fill),
+          ),
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '結果',
+                      style: TextStyle(
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF4E342E),
                       ),
                     ),
-                    onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            GameScreen(mode: mode, playMode: playMode),
+                    const SizedBox(height: 40),
+                    _ResultCard(label: 'スコア（正解数）', value: '$score 問'),
+                    const SizedBox(height: 16),
+                    _ResultCard(
+                      label: '正答率',
+                      value: '${accuracy.toStringAsFixed(1)} %',
+                    ),
+                    const SizedBox(height: 16),
+                    if (playMode == PlayMode.timeattack)
+                      _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),
+                    const SizedBox(height: 48),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D4C41),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                GameScreen(mode: mode, playMode: playMode),
+                          ),
+                        ),
+                        child: const Text('再挑戦'),
                       ),
                     ),
-                    child: const Text('再挑戦'),
-                  ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D4C41),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TitleScreen(),
+                          ),
+                          (_) => false,
+                        ),
+                        child: const Text('タイトルへ戻る'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D4C41),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () => Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TitleScreen()),
-                      (_) => false,
-                    ),
-                    child: const Text('タイトルへ戻る'),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
