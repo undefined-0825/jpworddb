@@ -9,6 +9,7 @@ class ResultScreen extends StatelessWidget {
   final GameMode mode;
   final PlayMode playMode;
   final int? initialTime;
+  final List<int>? levelFilters;
 
   const ResultScreen({
     super.key,
@@ -17,6 +18,7 @@ class ResultScreen extends StatelessWidget {
     required this.mode,
     required this.playMode,
     required this.initialTime,
+    this.levelFilters,
   });
 
   @override
@@ -73,8 +75,11 @@ class ResultScreen extends StatelessWidget {
                         onPressed: () => Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                GameScreen(mode: mode, playMode: playMode),
+                            builder: (_) => GameScreen(
+                              mode: mode,
+                              playMode: playMode,
+                              levelFilters: levelFilters,
+                            ),
                           ),
                         ),
                         child: const Text('再挑戦'),

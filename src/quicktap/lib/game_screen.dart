@@ -8,7 +8,14 @@ import 'result_screen.dart';
 class GameScreen extends StatefulWidget {
   final GameMode mode;
   final PlayMode playMode;
-  const GameScreen({super.key, required this.mode, required this.playMode});
+  final List<int>? levelFilters;
+
+  const GameScreen({
+    super.key,
+    required this.mode,
+    required this.playMode,
+    this.levelFilters,
+  });
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -38,7 +45,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadAndStart() async {
     final rows = widget.mode == GameMode.yoji
-        ? await DbHelper.fetchAllYoji()
+        ? await DbHelper.fetchAllYoji(levelFilters: widget.levelFilters)
         : await DbHelper.fetchAllKotowaza();
 
     if (!mounted) return;
@@ -78,6 +85,7 @@ class _GameScreenState extends State<GameScreen> {
           mode: widget.mode,
           playMode: widget.playMode,
           initialTime: initialTime,
+          levelFilters: widget.levelFilters,
         ),
       ),
     );

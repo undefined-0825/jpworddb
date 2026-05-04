@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'game_screen.dart';
 import 'game_state.dart';
+import 'mode_menu_screen.dart';
 import 'settings_screen.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -11,8 +11,6 @@ class TitleScreen extends StatefulWidget {
 }
 
 class _TitleScreenState extends State<TitleScreen> {
-  GameMode _mode = GameMode.yoji;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +41,7 @@ class _TitleScreenState extends State<TitleScreen> {
                     ),
                     const SizedBox(height: 48),
                     const Text(
-                      'モード選択',
+                      'トップメニュー',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -51,101 +49,39 @@ class _TitleScreenState extends State<TitleScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _ModeCard(
+                    _MenuButton(
                       label: '四字熟語',
-                      selected: _mode == GameMode.yoji,
-                      onTap: () => setState(() => _mode = GameMode.yoji),
+                      filled: true,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const ModeMenuScreen(mode: GameMode.yoji),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _ModeCard(
+                    _MenuButton(
                       label: 'ことわざ',
-                      selected: _mode == GameMode.kotowaza,
-                      onTap: () => setState(() => _mode = GameMode.kotowaza),
-                    ),
-                    const SizedBox(height: 48),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D4C41),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      filled: false,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const ModeMenuScreen(mode: GameMode.kotowaza),
                         ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GameScreen(
-                              mode: _mode,
-                              playMode: PlayMode.timeattack,
-                            ),
-                          ),
-                        ),
-                        child: const Text('タイムアタック'),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBCAAA4),
-                          foregroundColor: const Color(0xFF4E342E),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    _MenuButton(
+                      label: '設定',
+                      filled: false,
+                      icon: Icons.settings,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
                         ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GameScreen(
-                              mode: _mode,
-                              playMode: PlayMode.relax,
-                            ),
-                          ),
-                        ),
-                        child: const Text('リラックス'),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF6D4C41),
-                          side: const BorderSide(
-                            color: Color(0xFF6D4C41),
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          backgroundColor: Colors.white.withAlpha(220),
-                        ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SettingsScreen(),
-                          ),
-                        ),
-                        icon: const Icon(Icons.settings),
-                        label: const Text('設定'),
                       ),
                     ),
                   ],
@@ -159,15 +95,17 @@ class _TitleScreenState extends State<TitleScreen> {
   }
 }
 
-class _ModeCard extends StatelessWidget {
+class _MenuButton extends StatelessWidget {
   final String label;
-  final bool selected;
+  final bool filled;
   final VoidCallback onTap;
+  final IconData? icon;
 
-  const _ModeCard({
+  const _MenuButton({
     required this.label,
-    required this.selected,
+    required this.filled,
     required this.onTap,
+    this.icon,
   });
 
   @override
@@ -179,18 +117,30 @@ class _ModeCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF6D4C41) : Colors.white,
+          color: filled ? const Color(0xFF6D4C41) : Colors.white,
           border: Border.all(color: const Color(0xFF6D4C41), width: 2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: selected ? Colors.white : const Color(0xFF6D4C41),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  color: filled ? Colors.white : const Color(0xFF6D4C41),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: filled ? Colors.white : const Color(0xFF6D4C41),
+                ),
+              ),
+            ],
           ),
         ),
       ),
