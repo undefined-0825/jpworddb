@@ -13,18 +13,101 @@ class SetLevelApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '四字熟語レベル設定',
+      title: 'レベル設定',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6D4C41)),
         useMaterial3: true,
       ),
-      home: const LevelAssignScreen(),
+      home: const TopScreen(),
     );
   }
 }
 
+// ─── トップ画面 ──────────────────────────────────────────────
+
+class TopScreen extends StatelessWidget {
+  const TopScreen({super.key});
+
+  void _navigate(BuildContext context, WordMode mode) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LevelAssignScreen(mode: mode),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6D4C41),
+        foregroundColor: Colors.white,
+        title: const Text(
+          'レベル設定',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                '対象を選択してください',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+              ),
+              const SizedBox(height: 40),
+              _TopButton(
+                label: '四字熟語',
+                onTap: () => _navigate(context, WordMode.yoji),
+              ),
+              const SizedBox(height: 20),
+              _TopButton(
+                label: 'ことわざ',
+                onTap: () => _navigate(context, WordMode.kotowaza),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _TopButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 72,
+      child: FilledButton(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF6D4C41),
+          foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+}
+
+// ─── レベル設定画面 ───────────────────────────────────────────
+
 class LevelAssignScreen extends StatefulWidget {
-  const LevelAssignScreen({super.key});
+  final WordMode mode;
+
+  const LevelAssignScreen({super.key, required this.mode});
 
   @override
   State<LevelAssignScreen> createState() => _LevelAssignScreenState();
@@ -33,7 +116,7 @@ class LevelAssignScreen extends StatefulWidget {
 class _LevelAssignScreenState extends State<LevelAssignScreen> {
   final LevelDb _db = LevelDb();
 
-  YojiRecord? _current;
+  WordRecord? _current;
   int _remaining = 0;
   int _assigned = 0;
   int _total = 0;
@@ -42,6 +125,9 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
   bool _exporting = false;
   String? _error;
   String? _lastExportPath;
+
+  String get _modeLabel =>
+      widget.mode == WordMode.yoji ? '四字熟語' : 'ことわざ';
 
   @override
   void initState() {
@@ -56,8 +142,8 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
     });
 
     try {
-      final current = await _db.fetchNextUnassigned();
-      final summary = await _db.fetchSummary();
+      final current = await _db.fetchNextUnassigned(widget.mode);
+      final summary = await _db.fetchSummary(widget.mode);
       if (!mounted) return;
       setState(() {
         _current = current;
@@ -85,7 +171,7 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
     });
 
     try {
-      await _db.updateLevel(current.id, level);
+      await _db.updateLevel(widget.mode, current.id, level);
       await _loadNext();
     } catch (error) {
       if (!mounted) return;
@@ -162,7 +248,7 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('四字熟語レベル設定'),
+        title: Text('$_modeLabel レベル設定'),
         backgroundColor: const Color(0xFF6D4C41),
         foregroundColor: Colors.white,
         actions: [
@@ -210,9 +296,9 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               '未設定のレコードはありません。',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text('設定済み件数: $_assigned / $_total'),
@@ -382,3 +468,4 @@ class _LevelButton extends StatelessWidget {
     );
   }
 }
+

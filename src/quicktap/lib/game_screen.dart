@@ -46,7 +46,7 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _loadAndStart() async {
     final rows = widget.mode == GameMode.yoji
         ? await DbHelper.fetchAllYoji(levelFilters: widget.levelFilters)
-        : await DbHelper.fetchAllKotowaza();
+        : await DbHelper.fetchAllKotowaza(levelFilters: widget.levelFilters);
 
     if (!mounted) return;
     setState(() {

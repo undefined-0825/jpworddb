@@ -26,9 +26,7 @@ class ModeMenuScreen extends StatefulWidget {
 }
 
 class _ModeMenuScreenState extends State<ModeMenuScreen> {
-  final Set<int> _selectedLevels = _difficultyOptions
-      .map((option) => option.level)
-      .toSet();
+  final Set<int> _selectedLevels = {1};  // Default to level 1 only
 
   bool get _isYoji => widget.mode == GameMode.yoji;
 
@@ -39,7 +37,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
         builder: (_) => GameScreen(
           mode: widget.mode,
           playMode: playMode,
-          levelFilters: _isYoji ? _selectedLevels.toList() : null,
+          levelFilters: _selectedLevels.toList(),
         ),
       ),
     );
@@ -47,7 +45,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final canStart = !_isYoji || _selectedLevels.isNotEmpty;
+    final canStart = _selectedLevels.isNotEmpty;
     final title = _isYoji ? '四字熟語メニュー' : 'ことわざメニュー';
 
     return Scaffold(
@@ -89,21 +87,20 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                     filled: false,
                     onTap: canStart ? () => _startGame(PlayMode.relax) : null,
                   ),
-                  if (_isYoji) ...[
-                    const SizedBox(height: 32),
-                    const Text(
-                      '難易度',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4E342E),
-                      ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    '難易度',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4E342E),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'チェックした難易度(level)の四字熟語だけを出題します。',
-                      style: TextStyle(fontSize: 13, color: Color(0xFF795548)),
-                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'チェックした難易度の問題だけを出題します。',
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF795548)),
+                  ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 10,
@@ -132,18 +129,17 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                         );
                       }).toList(),
                     ),
-                    if (_selectedLevels.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: Text(
-                          '少なくとも1つの難易度を選択してください。',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFFD32F2F),
-                          ),
+                  if (_selectedLevels.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: Text(
+                        '少なくとも1つの難易度を選択してください。',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFFD32F2F),
                         ),
                       ),
-                  ],
+                    ),
                 ],
               ),
             ),
