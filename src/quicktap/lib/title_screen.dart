@@ -72,19 +72,30 @@ class _TitleScreenState extends State<TitleScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _MenuButton(
-                      label: '設定',
-                      filled: false,
-                      icon: Icons.settings,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      ),
-                    ),
                   ],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 8),
+                child: IconButton(
+                  iconSize: 30,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withAlpha(220),
+                    foregroundColor: const Color(0xFF6D4C41),
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.settings),
+                  tooltip: '設定',
                 ),
               ),
             ),
@@ -99,13 +110,11 @@ class _MenuButton extends StatelessWidget {
   final String label;
   final bool filled;
   final VoidCallback onTap;
-  final IconData? icon;
 
   const _MenuButton({
     required this.label,
     required this.filled,
     required this.onTap,
-    this.icon,
   });
 
   @override
@@ -122,25 +131,13 @@ class _MenuButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  color: filled ? Colors.white : const Color(0xFF6D4C41),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: filled ? Colors.white : const Color(0xFF6D4C41),
-                ),
-              ),
-            ],
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: filled ? Colors.white : const Color(0xFF6D4C41),
+            ),
           ),
         ),
       ),

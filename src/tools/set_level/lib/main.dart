@@ -31,9 +31,7 @@ class TopScreen extends StatelessWidget {
   void _navigate(BuildContext context, WordMode mode) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => LevelAssignScreen(mode: mode),
-      ),
+      MaterialPageRoute(builder: (_) => LevelAssignScreen(mode: mode)),
     );
   }
 
@@ -58,7 +56,11 @@ class TopScreen extends StatelessWidget {
               const Text(
                 '対象を選択してください',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4E342E),
+                ),
               ),
               const SizedBox(height: 40),
               _TopButton(
@@ -94,7 +96,9 @@ class _TopButton extends StatelessWidget {
           backgroundColor: const Color(0xFF6D4C41),
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: Text(label),
       ),
@@ -126,8 +130,7 @@ class _LevelAssignScreenState extends State<LevelAssignScreen> {
   String? _error;
   String? _lastExportPath;
 
-  String get _modeLabel =>
-      widget.mode == WordMode.yoji ? '四字熟語' : 'ことわざ';
+  String get _modeLabel => widget.mode == WordMode.yoji ? '四字熟語' : 'ことわざ';
 
   @override
   void initState() {
@@ -468,4 +471,3 @@ class _LevelButton extends StatelessWidget {
     );
   }
 }
-

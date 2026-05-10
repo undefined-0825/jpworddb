@@ -18,7 +18,9 @@
 | DBMS | SQLite 3 |
 | ファイルパス | `data/jpword.db` |
 | 文字コード | UTF-8 |
-| テーブル数 | 3（`source_master` / `yojijukugo` / `kotowaza`） |
+| テーブル数 | 5（`source_master` / `yojijukugo` / `kotowaza` / `kanken_level` / `yojijukugo_kanken_level`） |
+
+補足：quicktap / set_level で配布・参照するDBは `jpword.db` を使用する。
 
 ### 2.2 Mini版（`data/jpword_mini.db`）
 
@@ -87,7 +89,8 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
     kanken_level  TEXT,
     usage         TEXT,
     url           TEXT    NOT NULL UNIQUE,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    level         INTEGER
 );
 ```
 
@@ -105,6 +108,7 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
 | `usage` | TEXT | NULL 可 | 場面・用途タグ。複数値は `/` 区切り（例：`機会をうかがう/我慢`） |
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
+| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
 
 ---
 
@@ -170,7 +174,8 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     meaning    TEXT    NOT NULL,
     variant    TEXT,
     url        TEXT    NOT NULL UNIQUE,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    level      INTEGER
 );
 ```
 
@@ -185,6 +190,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `variant` | TEXT | NULL 可 | 異形（別表記・類句）。不明の場合は空文字 |
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
+| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
 
 ---
 
@@ -313,3 +319,4 @@ python src/db/build_db.py --skip-mini
 | 2026-04-26 | 初版作成 |
 | 2026-04-26 | DBパスを `jpword.db` に変更・`source_master` テーブル追加・`yojijukugo` に `source_id` / `source_raw` カラム追加 |
 | 2026-04-27 | Mini版DB仕様追加（`jpword_mini.db`）・`yojijukugo_mini` / `kotowaza_mini` テーブル定義追加 |
+| 2026-05-10 | `yojijukugo` / `kotowaza` に `level` カラムを追加し、quicktap / set_level で `jpword.db` を利用する運用を明記 |

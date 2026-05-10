@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'app_settings.dart';
+import 'contact_page.dart';
+import 'privacy_policy_page.dart';
+import 'terms_of_service_page.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,8 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
                 children: [
                   const Text(
                     '文字の大きさ',
@@ -106,6 +108,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '情報',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4E342E),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _LinkCard(
+                    title: 'プライバシーポリシー',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyPage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _LinkCard(
+                    title: '利用規約',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TermsOfServicePage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _LinkCard(
+                    title: 'お問い合わせ',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ContactPage(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -120,4 +161,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
     FontSizeOption.medium => '中',
     FontSizeOption.small => '小',
   };
+}
+
+class _LinkCard extends StatelessWidget {
+  final String title;
+  final VoidCallback onTap;
+
+  const _LinkCard({required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(225),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF6D4C41), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4E342E),
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF6D4C41)),
+          ],
+        ),
+      ),
+    );
+  }
 }

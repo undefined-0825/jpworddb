@@ -26,7 +26,7 @@ class ModeMenuScreen extends StatefulWidget {
 }
 
 class _ModeMenuScreenState extends State<ModeMenuScreen> {
-  final Set<int> _selectedLevels = {1};  // Default to level 1 only
+  final Set<int> _selectedLevels = {1}; // Default to level 1 only
 
   bool get _isYoji => widget.mode == GameMode.yoji;
 
@@ -99,36 +99,39 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'チェックした難易度の問題だけを出題します。',
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF795548)),
-                  ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: _difficultyOptions.map((option) {
-                        final selected = _selectedLevels.contains(option.level);
-                        return FilterChip(
-                          label: Text(option.label),
-                          selected: selected,
-                          selectedColor: const Color(0xFFD7CCC8),
-                          backgroundColor: Colors.white.withAlpha(225),
-                          checkmarkColor: const Color(0xFF4E342E),
-                          labelStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF4E342E),
-                          ),
-                          onSelected: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _selectedLevels.add(option.level);
-                              } else {
-                                _selectedLevels.remove(option.level);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF795548),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: _difficultyOptions.map((option) {
+                      final selected = _selectedLevels.contains(option.level);
+                      return FilterChip(
+                        label: Text(option.label),
+                        selected: selected,
+                        selectedColor: const Color(0xFFD7CCC8),
+                        backgroundColor: Colors.white.withAlpha(225),
+                        checkmarkColor: const Color(0xFF4E342E),
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4E342E),
+                        ),
+                        onSelected: (checked) {
+                          setState(() {
+                            if (checked) {
+                              _selectedLevels.add(option.level);
+                            } else {
+                              _selectedLevels.remove(option.level);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
                   if (_selectedLevels.isEmpty)
                     const Padding(
                       padding: EdgeInsets.only(top: 12),
