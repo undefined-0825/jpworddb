@@ -1,4 +1,4 @@
-package com.jpworddb.quicktap
+package com.sukimalab.kotonoha
 
 import io.flutter.embedding.android.FlutterActivity
 

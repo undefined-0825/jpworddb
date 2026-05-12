@@ -276,3 +276,41 @@ WHERE k.word IS NOT NULL
 
 - アプリ名（タイトル）: 成語並べ
 - Android表示名: `AndroidManifest.xml` の `android:label` で 成語並べ
+
+---
+
+## 10. 広告仕様（AdMob）
+
+### 10.1 目的
+
+- 無料アプリ運用のため、ゲーム画面にバナー広告を表示する。
+
+### 10.2 広告ネットワーク
+
+- Google AdMob（`google_mobile_ads`）
+
+### 10.3 利用ID（本番）
+
+| 種別 | 値 |
+|------|------|
+| AdMobアプリID | `ca-app-pub-4954876478259153~3499751135` |
+| バナー広告ユニットID | `ca-app-pub-4954876478259153/4155796641` |
+
+### 10.4 プラットフォーム設定
+
+- Android
+  - `AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID` にアプリIDを設定
+- iOS
+  - `Info.plist` の `GADApplicationIdentifier` にアプリIDを設定
+
+### 10.5 表示仕様
+
+- 表示画面：ゲーム画面（`GameScreen`）
+- 位置：画面下部
+- フォーマット：Banner（`AdSize.banner`）
+- 表示条件：広告読込成功時のみ表示（失敗時は非表示でゲーム進行を継続）
+
+### 10.6 失敗時挙動
+
+- 広告ロード失敗時は広告オブジェクトを破棄し、再試行は行わない。
+- 広告が表示できない場合でも、ゲーム機能（出題・判定・遷移）は継続する。

@@ -50,7 +50,7 @@ class _GameScreenState extends State<GameScreen> {
   void _initBannerAd() {
     _bannerAd = BannerAd(
       adUnitId:
-          'ca-app-pub-3940256099942544/6300978111', // Test banner ad unit ID
+          'ca-app-pub-4954876478259153/4155796641',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
