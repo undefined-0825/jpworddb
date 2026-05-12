@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app_settings.dart';
 import 'db_helper.dart';
 import 'game_state.dart';
@@ -26,13 +27,44 @@ class _GameScreenState extends State<GameScreen> {
   final _settings = AppSettings.instance;
   Timer? _timer;
   bool _loading = true;
+  bool _isLevelCleared = false;
   bool? _answerResult; // true=◁E false=ÁE null=非表示
   String? _revealWord; // 正解/スキチE�E時に表示する語句
   String? _revealReading; // 正解/スキチE�E時に表示する読み
 
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+
+  int get _perQuestionLimitSeconds {
+    if (widget.mode == GameMode.yoji) {
+      return 30;
+    }
+    return 60;
+  }
+
   void _onFontSizeChanged() {
     if (!mounted) return;
     setState(() {});
+  }
+
+  void _initBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId:
+          'ca-app-pub-3940256099942544/6300978111', // Test banner ad unit ID
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          if (mounted) {
+            setState(() => _isBannerAdLoaded = true);
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+    _bannerAd.load();
   }
 
   @override
@@ -40,6 +72,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _state = GameState(mode: widget.mode);
     _settings.fontSizeOption.addListener(_onFontSizeChanged);
+    _initBannerAd();
     _loadAndStart();
   }
 
@@ -51,14 +84,20 @@ class _GameScreenState extends State<GameScreen> {
     if (!mounted) return;
     setState(() {
       _state.loadPool(rows);
-      _state.nextQuestion();
+      final started = _state.nextQuestion();
+      _state.remainingTime = _perQuestionLimitSeconds;
+      _isLevelCleared = false;
       _loading = false;
-      _state.isRunning = true;
+      _state.isRunning = started;
     });
-    if (widget.playMode == PlayMode.timeattack) _startTimer();
+    if (widget.playMode == PlayMode.timeattack && _state.isRunning) {
+      _startTimer();
+    }
   }
 
   void _startTimer() {
+    _timer?.cancel();
+    _state.remainingTime = _perQuestionLimitSeconds;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {
@@ -72,16 +111,33 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _moveToNextQuestion() {
+    final hasNext = _state.nextQuestion();
+    if (!hasNext) {
+      _state.isRunning = false;
+      _timer?.cancel();
+      _isLevelCleared = _state.score == _state.totalQuestions;
+      _goToResult();
+      return;
+    }
+
+    if (widget.playMode == PlayMode.timeattack) {
+      _startTimer();
+    }
+  }
+
   void _goToResult() {
     final initialTime = widget.playMode == PlayMode.relax
         ? null
-        : (widget.mode == GameMode.kotowaza ? 180 : 60);
+        : _perQuestionLimitSeconds;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ResultScreen(
           score: _state.score,
           totalAsked: _state.totalAsked,
+          totalQuestions: _state.totalQuestions,
+          isLevelCleared: _isLevelCleared,
           mode: widget.mode,
           playMode: widget.playMode,
           initialTime: initialTime,
@@ -92,8 +148,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onTileTap(CharTile tile) {
-    if (!_state.isRunning || _answerResult != null || _revealWord != null)
+    if (!_state.isRunning || _answerResult != null || _revealWord != null) {
       return;
+    }
     setState(() {
       _state.tapTile(tile);
 
@@ -115,6 +172,9 @@ class _GameScreenState extends State<GameScreen> {
     if (_state.selectedTiles.length == _state.currentQuestion!.word.length) {
       if (_state.checkAnswer()) {
         _state.score++;
+        if (_state.score == _state.totalQuestions) {
+          _isLevelCleared = true;
+        }
         setState(() {
           _answerResult = true;
           _revealWord = _state.currentQuestion!.word;
@@ -123,19 +183,21 @@ class _GameScreenState extends State<GameScreen> {
       } else {
         setState(() => _answerResult = false);
         Future.delayed(const Duration(milliseconds: 700), () {
-          if (mounted)
+          if (mounted) {
             setState(() {
               _answerResult = null;
               _state.resetInput();
             });
+          }
         });
       }
     }
   }
 
   void _onSkip() {
-    if (!_state.isRunning || _answerResult != null || _revealWord != null)
+    if (!_state.isRunning || _answerResult != null || _revealWord != null) {
       return;
+    }
     final word = _state.currentQuestion!.word;
     final reading = _state.currentQuestion!.reading;
     setState(() {
@@ -149,6 +211,7 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     _timer?.cancel();
     _settings.fontSizeOption.removeListener(_onFontSizeChanged);
+    _bannerAd.dispose();
     super.dispose();
   }
 
@@ -335,6 +398,8 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ],
                   ),
+                  if (_isBannerAdLoaded)
+                    SizedBox(height: 60, child: AdWidget(ad: _bannerAd)),
                 ],
               ),
             ),
@@ -349,7 +414,7 @@ class _GameScreenState extends State<GameScreen> {
                           _answerResult = null;
                           _revealWord = null;
                           _revealReading = null;
-                          _state.nextQuestion();
+                          _moveToNextQuestion();
                         });
                       }
                     : null,
@@ -396,7 +461,7 @@ class _GameScreenState extends State<GameScreen> {
                   setState(() {
                     _revealWord = null;
                     _revealReading = null;
-                    _state.nextQuestion();
+                    _moveToNextQuestion();
                   });
                 },
                 child: Container(

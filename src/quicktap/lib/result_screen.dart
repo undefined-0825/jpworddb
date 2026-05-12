@@ -6,6 +6,8 @@ import 'title_screen.dart';
 class ResultScreen extends StatelessWidget {
   final int score;
   final int totalAsked;
+  final int totalQuestions;
+  final bool isLevelCleared;
   final GameMode mode;
   final PlayMode playMode;
   final int? initialTime;
@@ -15,6 +17,8 @@ class ResultScreen extends StatelessWidget {
     super.key,
     required this.score,
     required this.totalAsked,
+    required this.totalQuestions,
+    required this.isLevelCleared,
     required this.mode,
     required this.playMode,
     required this.initialTime,
@@ -53,6 +57,13 @@ class ResultScreen extends StatelessWidget {
                       label: '正答率',
                       value: '${accuracy.toStringAsFixed(1)} %',
                     ),
+                    const SizedBox(height: 16),
+                    _ResultCard(
+                      label: 'レベルクリア',
+                      value: isLevelCleared ? '達成' : '未達成',
+                    ),
+                    const SizedBox(height: 16),
+                    _ResultCard(label: '全問題数', value: '$totalQuestions 問'),
                     const SizedBox(height: 16),
                     if (playMode == PlayMode.timeattack)
                       _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),

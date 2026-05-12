@@ -14,9 +14,9 @@ class ContactPage extends StatelessWidget {
     }
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('リンクを開けませんでした')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('リンクを開けませんでした')));
     }
   }
 
@@ -40,10 +40,7 @@ class ContactPage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const _InfoCard(
-                  title: 'メールアドレス',
-                  body: _email,
-                ),
+                const _InfoCard(title: 'メールアドレス', body: _email),
                 const SizedBox(height: 10),
                 _LinkCard(
                   title: 'メールを送る',
@@ -53,15 +50,12 @@ class ContactPage extends StatelessWidget {
                     Uri(
                       scheme: 'mailto',
                       path: _email,
-                      queryParameters: {'subject': '成語並べ お問い合わせ'},
+                      queryParameters: {'subject': '日本語を知る お問い合わせ'},
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const _InfoCard(
-                  title: 'お問い合わせフォーム',
-                  body: _formUrl,
-                ),
+                const _InfoCard(title: 'お問い合わせフォーム', body: _formUrl),
                 const SizedBox(height: 10),
                 _LinkCard(
                   title: 'フォームを開く',
@@ -155,7 +149,10 @@ class _LinkCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF795548)),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF795548),
+                    ),
                   ),
                 ],
               ),

@@ -35,12 +35,14 @@ class PrivacyPolicyPage extends StatelessWidget {
                 SizedBox(height: 12),
                 _SectionCard(
                   title: '広告利用',
-                  body: '広告配信を行う場合、広告配信事業者が利用者情報を取り扱うことがあります。詳細は各事業者のポリシーをご確認ください。',
+                  body:
+                      '広告配信を行う場合、広告配信事業者が利用者情報を取り扱うことがあります。詳細は各事業者のポリシーをご確認ください。',
                 ),
                 SizedBox(height: 12),
                 _SectionCard(
                   title: 'Analytics利用',
-                  body: '利用状況の把握のため、アクセス解析ツールを利用する場合があります。解析データは匿名化された形式で収集されます。',
+                  body:
+                      '利用状況の把握のため、アクセス解析ツールを利用する場合があります。解析データは匿名化された形式で収集されます。',
                 ),
                 SizedBox(height: 12),
                 _SectionCard(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'game_state.dart';
 import 'mode_menu_screen.dart';
 import 'settings_screen.dart';
+import 'version_update_service.dart';
 
 class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
@@ -11,6 +13,76 @@ class TitleScreen extends StatefulWidget {
 }
 
 class _TitleScreenState extends State<TitleScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkVersionUpgrade();
+  }
+
+  Future<void> _checkVersionUpgrade() async {
+    final updateInfo = await VersionUpdateService.detectVersionUpgrade();
+    if (!mounted || updateInfo == null) return;
+
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showReinstallDialog(updateInfo, packageInfo.packageName);
+    });
+  }
+
+  Future<void> _showReinstallDialog(
+    VersionUpdateInfo updateInfo,
+    String packageName,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('アップデートを検知しました'),
+          content: Text(
+            'アプリのバージョンが更新されました。\n'
+            '旧: ${updateInfo.previousVersion}\n'
+            '新: ${updateInfo.currentVersion}\n\n'
+            '不具合回避のため、再インストールを推奨します。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('あとで'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final opened = await VersionUpdateService.openReinstallPage(
+                  packageName: packageName,
+                  reinstallUri: updateInfo.reinstallUri,
+                );
+
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+
+                if (!opened && mounted) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        '再インストールページを開けませんでした。ストアから手動で再インストールしてください。',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const Text('再インストールする'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +99,7 @@ class _TitleScreenState extends State<TitleScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'クイックタップ',
+                      '日本語を知る',
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
@@ -90,9 +162,7 @@ class _TitleScreenState extends State<TitleScreen> {
                   ),
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const SettingsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
                   ),
                   icon: const Icon(Icons.settings),
                   tooltip: '設定',

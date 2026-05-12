@@ -85,17 +85,14 @@ class GameState {
 
   void loadPool(List<Map<String, dynamic>> rows) {
     _pool = rows;
+    _usedIds.clear();
   }
 
   bool get poolEmpty => _pool.isEmpty;
+  int get totalQuestions => _pool.length;
 
-  /// 次の問題をセット。使い切ったらリセット
+  /// 次の問題をセット。使い切ったら false を返す。
   bool nextQuestion() {
-    final remaining = _pool
-        .where((r) => !_usedIds.contains(r['id'] as int))
-        .toList();
-    if (remaining.isEmpty) _usedIds.clear();
-
     final candidates = _pool
         .where((r) => !_usedIds.contains(r['id'] as int))
         .toList();

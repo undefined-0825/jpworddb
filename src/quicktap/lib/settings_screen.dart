@@ -142,9 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'お問い合わせ',
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const ContactPage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const ContactPage()),
                     ),
                   ),
                 ],
