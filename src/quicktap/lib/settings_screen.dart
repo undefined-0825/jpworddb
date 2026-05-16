@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_settings.dart';
 import 'contact_page.dart';
+import 'purchase_service.dart';
 import 'privacy_policy_page.dart';
 import 'terms_of_service_page.dart';
 
@@ -13,6 +14,34 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _settings = AppSettings.instance;
+  final _purchase = PurchaseService.instance;
+  bool _purchasing = false;
+
+  Future<void> _buyRemoveAds() async {
+    if (_purchase.adsDisabledNotifier.value) return;
+
+    setState(() => _purchasing = true);
+    final started = await _purchase.purchaseRemoveAds();
+    if (!mounted) return;
+    setState(() => _purchasing = false);
+
+    if (!started) {
+      final message = _purchase.lastErrorMessage ?? '購入処理を開始できませんでした。';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _restorePurchase() async {
+    setState(() => _purchasing = true);
+    await _purchase.restorePurchases();
+    if (!mounted) return;
+    setState(() => _purchasing = false);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('購入情報の復元を実行しました。')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +134,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           );
                         }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '広告',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4E342E),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _purchase.adsDisabledNotifier,
+                    builder: (context, adsDisabled, _) {
+                      final statusText = adsDisabled
+                          ? '広告は非表示です（購入済み）'
+                          : '広告を表示中です';
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(225),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF6D4C41),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              statusText,
+                              style: const TextStyle(
+                                color: Color(0xFF4E342E),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '買い切り ${_purchase.removeAdsPriceLabel} で広告をオフにできます。',
+                              style: const TextStyle(
+                                color: Color(0xFF795548),
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: (adsDisabled || _purchasing)
+                                        ? null
+                                        : _buyRemoveAds,
+                                    child: Text(
+                                      adsDisabled ? '購入済み' : '広告をオフにする',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                TextButton(
+                                  onPressed: _purchasing
+                                      ? null
+                                      : _restorePurchase,
+                                  child: const Text('購入を復元'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),

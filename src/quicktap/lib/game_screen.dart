@@ -4,6 +4,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app_settings.dart';
 import 'db_helper.dart';
 import 'game_state.dart';
+import 'purchase_service.dart';
 import 'result_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _GameScreenState extends State<GameScreen> {
   String? _revealWord; // 正解/スキチE�E時に表示する語句
   String? _revealReading; // 正解/スキチE�E時に表示する読み
 
-  late BannerAd _bannerAd;
+  BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
   int get _perQuestionLimitSeconds {
@@ -48,9 +49,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _initBannerAd() {
+    if (PurchaseService.instance.adsDisabledNotifier.value) return;
+
+    _isBannerAdLoaded = false;
     _bannerAd = BannerAd(
-      adUnitId:
-          'ca-app-pub-4954876478259153/4155796641',
+      adUnitId: 'ca-app-pub-4954876478259153/4155796641',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -61,10 +64,28 @@ class _GameScreenState extends State<GameScreen> {
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
+          _bannerAd = null;
         },
       ),
     );
-    _bannerAd.load();
+    _bannerAd!.load();
+  }
+
+  void _onAdsDisabledChanged() {
+    if (!mounted) return;
+
+    if (PurchaseService.instance.adsDisabledNotifier.value) {
+      _bannerAd?.dispose();
+      _bannerAd = null;
+      if (_isBannerAdLoaded) {
+        setState(() => _isBannerAdLoaded = false);
+      }
+      return;
+    }
+
+    if (_bannerAd == null) {
+      _initBannerAd();
+    }
   }
 
   @override
@@ -72,6 +93,9 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _state = GameState(mode: widget.mode);
     _settings.fontSizeOption.addListener(_onFontSizeChanged);
+    PurchaseService.instance.adsDisabledNotifier.addListener(
+      _onAdsDisabledChanged,
+    );
     _initBannerAd();
     _loadAndStart();
   }
@@ -211,7 +235,10 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     _timer?.cancel();
     _settings.fontSizeOption.removeListener(_onFontSizeChanged);
-    _bannerAd.dispose();
+    PurchaseService.instance.adsDisabledNotifier.removeListener(
+      _onAdsDisabledChanged,
+    );
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -398,8 +425,8 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ],
                   ),
-                  if (_isBannerAdLoaded)
-                    SizedBox(height: 60, child: AdWidget(ad: _bannerAd)),
+                  if (_isBannerAdLoaded && _bannerAd != null)
+                    SizedBox(height: 60, child: AdWidget(ad: _bannerAd!)),
                 ],
               ),
             ),

@@ -36,7 +36,9 @@ class PrivacyPolicyPage extends StatelessWidget {
                 _SectionCard(
                   title: '広告利用',
                   body:
-                      '広告配信を行う場合、広告配信事業者が利用者情報を取り扱うことがあります。詳細は各事業者のポリシーをご確認ください。',
+                      '本アプリはGoogle AdMob（Google LLC）による広告を表示しています。AdMobは広告配信の最適化のため、端末識別子（広告ID）やCookieなどの情報を収集・利用することがあります。収集された情報はGoogleのプライバシーポリシー（https://policies.google.com/privacy）に従って管理されます。\n\n'
+                      '広告IDの利用を制限したい場合は、端末の設定（Androidは「設定 > Google > 広告」、iOSは「設定 > プライバシーとセキュリティ > トラッキング」）から変更できます。\n\n'
+                      'アプリ内課金により広告を削除した場合は、AdMobによる情報収集は行われません。',
                 ),
                 SizedBox(height: 12),
                 _SectionCard(
