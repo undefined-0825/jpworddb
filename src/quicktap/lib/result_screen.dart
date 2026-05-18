@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'game_screen.dart';
 import 'game_state.dart';
+import 'settings_screen.dart';
 import 'title_screen.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -33,7 +34,28 @@ class ResultScreen extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/background.png', fit: BoxFit.fill),
+            child: Image.asset('assets/background.png', fit: BoxFit.cover),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 8),
+                child: IconButton(
+                  iconSize: 30,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withAlpha(220),
+                    foregroundColor: const Color(0xFF6D4C41),
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
+                  icon: const Icon(Icons.settings),
+                  tooltip: '設定',
+                ),
+              ),
+            ),
           ),
           SafeArea(
             child: Center(
@@ -50,7 +72,15 @@ class ResultScreen extends StatelessWidget {
                         color: Color(0xFF4E342E),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 24),
+                    Image.asset(
+                      accuracy >= 50
+                          ? 'assets/character_correct.png'
+                          : 'assets/character_wrong.png',
+                      width: 180,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 24),
                     _ResultCard(label: 'スコア（正解数）', value: '$score 問'),
                     const SizedBox(height: 16),
                     _ResultCard(

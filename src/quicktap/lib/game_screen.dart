@@ -6,6 +6,7 @@ import 'db_helper.dart';
 import 'game_state.dart';
 import 'purchase_service.dart';
 import 'result_screen.dart';
+import 'settings_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final GameMode mode;
@@ -206,14 +207,6 @@ class _GameScreenState extends State<GameScreen> {
         });
       } else {
         setState(() => _answerResult = false);
-        Future.delayed(const Duration(milliseconds: 700), () {
-          if (mounted) {
-            setState(() {
-              _answerResult = null;
-              _state.resetInput();
-            });
-          }
-        });
       }
     }
   }
@@ -249,7 +242,28 @@ class _GameScreenState extends State<GameScreen> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Image.asset('assets/background.png', fit: BoxFit.fill),
+              child: Image.asset('assets/background.png', fit: BoxFit.cover),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8, right: 8),
+                  child: IconButton(
+                    iconSize: 30,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withAlpha(220),
+                      foregroundColor: const Color(0xFF6D4C41),
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    ),
+                    icon: const Icon(Icons.settings),
+                    tooltip: '設定',
+                  ),
+                ),
+              ),
             ),
             const Center(child: CircularProgressIndicator()),
           ],
@@ -267,7 +281,28 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/background.png', fit: BoxFit.fill),
+            child: Image.asset('assets/background.png', fit: BoxFit.cover),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 8),
+                child: IconButton(
+                  iconSize: 30,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withAlpha(220),
+                    foregroundColor: const Color(0xFF6D4C41),
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
+                  icon: const Icon(Icons.settings),
+                  tooltip: '設定',
+                ),
+              ),
+            ),
           ),
           SafeArea(
             child: Padding(
@@ -435,31 +470,31 @@ class _GameScreenState extends State<GameScreen> {
           if (_answerResult != null)
             Positioned.fill(
               child: GestureDetector(
-                onTap: _answerResult!
-                    ? () {
-                        setState(() {
-                          _answerResult = null;
-                          _revealWord = null;
-                          _revealReading = null;
-                          _moveToNextQuestion();
-                        });
-                      }
-                    : null,
+                onTap: () {
+                  setState(() {
+                    if (_answerResult!) {
+                      _answerResult = null;
+                      _revealWord = null;
+                      _revealReading = null;
+                      _moveToNextQuestion();
+                    } else {
+                      _state.resetInput();
+                      _answerResult = null;
+                    }
+                  });
+                },
                 child: Container(
                   color: Colors.black26,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          _answerResult! ? '○' : '×',
-                          style: TextStyle(
-                            fontSize: 120,
-                            fontWeight: FontWeight.bold,
-                            color: _answerResult!
-                                ? const Color(0xFF388E3C)
-                                : const Color(0xFFD32F2F),
-                          ),
+                        Image.asset(
+                          _answerResult!
+                              ? 'assets/character_correct.png'
+                              : 'assets/character_wrong.png',
+                          width: 160,
+                          fit: BoxFit.contain,
                         ),
                         if (_answerResult! && _revealWord != null)
                           ..._wordRevealWidgets(),

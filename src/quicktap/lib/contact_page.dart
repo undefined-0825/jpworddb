@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'settings_screen.dart';
 
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
@@ -30,6 +31,16 @@ class ContactPage extends StatelessWidget {
           'お問い合わせ',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            icon: const Icon(Icons.settings),
+            tooltip: '設定',
+          ),
+        ],
       ),
       body: Stack(
         children: [

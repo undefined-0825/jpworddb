@@ -98,29 +98,12 @@ class _TitleScreenState extends State<TitleScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      '日本語を知る',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4E342E),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '文字をタップして語句を完成させよう！',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF795548)),
+                    Image.asset(
+                      'assets/title_image.png',
+                      width: 360,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 48),
-                    const Text(
-                      'トップメニュー',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4E342E),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     _MenuButton(
                       label: '四字熟語',
                       filled: true,

@@ -68,6 +68,10 @@ flutter:
   assets:
     - assets/jpword.db
     - assets/background.png
+    - assets/title_image.png
+    - assets/character_correct.png
+    - assets/character_wrong.png
+    - assets/mode_select.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

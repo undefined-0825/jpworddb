@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'game_screen.dart';
 import 'game_state.dart';
+import 'settings_screen.dart';
 
 class _DifficultyOption {
   final int level;
@@ -53,18 +54,36 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
         backgroundColor: const Color(0xFF6D4C41),
         foregroundColor: Colors.white,
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            icon: const Icon(Icons.settings),
+            tooltip: '設定',
+          ),
+        ],
       ),
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/background.png', fit: BoxFit.fill),
+            child: Image.asset('assets/background.png', fit: BoxFit.cover),
           ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 16, left: 24, right: 24, bottom: 24),
+            child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Center(
+                    child: Image.asset(
+                      'assets/mode_select.png',
+                      width: 300,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     'プレイモード',
                     style: TextStyle(
