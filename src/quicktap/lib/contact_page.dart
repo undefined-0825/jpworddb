@@ -6,6 +6,8 @@ class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
 
   static const String _email = 'sukima.lab.nakanoya@gmail.com';
+  static const String _siteUrl =
+      'https://kotonoha-site.sukima-lab-nakanoya.workers.dev/';
   static const String _formUrl = 'https://example.com/contact';
 
   Future<void> _openUri(BuildContext context, Uri uri) async {
@@ -51,10 +53,20 @@ class ContactPage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const _InfoCard(title: 'メールアドレス', body: _email),
-                const SizedBox(height: 10),
                 _LinkCard(
-                  title: 'メールを送る',
+                  title: 'コトノハのサイト',
+                  subtitle: _siteUrl,
+                  onTap: () => _openUri(context, Uri.parse(_siteUrl)),
+                ),
+                const SizedBox(height: 16),
+                _LinkCard(
+                  title: 'お問い合わせフォーム',
+                  subtitle: _formUrl,
+                  onTap: () => _openUri(context, Uri.parse(_formUrl)),
+                ),
+                const SizedBox(height: 16),
+                _LinkCard(
+                  title: 'メールアドレス',
                   subtitle: _email,
                   onTap: () => _openUri(
                     context,
@@ -65,54 +77,8 @@ class ContactPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const _InfoCard(title: 'お問い合わせフォーム', body: _formUrl),
-                const SizedBox(height: 10),
-                _LinkCard(
-                  title: 'フォームを開く',
-                  subtitle: _formUrl,
-                  onTap: () => _openUri(context, Uri.parse(_formUrl)),
-                ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final String title;
-  final String body;
-
-  const _InfoCard({required this.title, required this.body});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(225),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF6D4C41), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF4E342E),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SelectableText(
-            body,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF5D4037)),
           ),
         ],
       ),

@@ -71,7 +71,12 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
             child: Image.asset('assets/background.png', fit: BoxFit.cover),
           ),
           SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 16, left: 24, right: 24, bottom: 24),
+            padding: const EdgeInsets.only(
+              top: 16,
+              left: 24,
+              right: 24,
+              bottom: 24,
+            ),
             child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
