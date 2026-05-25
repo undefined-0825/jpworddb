@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:convert';
 
 enum GameMode { yoji, kotowaza }
 
@@ -9,6 +10,7 @@ class Question {
   final String word;
   final String reading;
   final String meaning;
+  final List<String> units;
   late final List<_CharItem> _chars;
 
   Question({
@@ -16,13 +18,15 @@ class Question {
     required this.word,
     required this.reading,
     required this.meaning,
-  }) {
-    _chars = word
-        .split('')
+    List<String>? units,
+  }) : units = units != null && units.isNotEmpty ? units : word.split('') {
+    _chars = this.units
         .indexed
         .map((e) => _CharItem(index: e.$1, char: e.$2))
         .toList();
   }
+
+  int get tileCount => _chars.length;
 
   /// Fisher-Yates シャッフル（元と同順の場合は再シャッフル）
   List<CharTile> shuffled() {
@@ -102,11 +106,34 @@ class GameState {
     final row = candidates[rng.nextInt(candidates.length)];
     _usedIds.add(row['id'] as int);
 
+    List<String>? units;
+    if (mode == GameMode.kotowaza) {
+      final raw = row['bunsetsu'] as String?;
+      if (raw != null && raw.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(raw);
+          if (decoded is List) {
+            final parsed = decoded
+                .whereType<String>()
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            if (parsed.isNotEmpty) {
+              units = parsed;
+            }
+          }
+        } catch (_) {
+          units = null;
+        }
+      }
+    }
+
     currentQuestion = Question(
       id: row['id'] as int,
       word: row['word'] as String,
       reading: row['reading'] as String? ?? '',
       meaning: row['meaning'] as String? ?? '',
+      units: units,
     );
 
     shuffledTiles = currentQuestion!.shuffled();

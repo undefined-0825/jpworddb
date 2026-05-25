@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
     kanken_level  TEXT,
     usage         TEXT,
     url           TEXT    NOT NULL UNIQUE,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    level         INTEGER
 );
 """
 
@@ -68,7 +69,9 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     meaning    TEXT    NOT NULL,
     variant    TEXT,
     url        TEXT    NOT NULL UNIQUE,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    level      INTEGER,
+    bunsetsu   TEXT
 );
 """
 
@@ -300,6 +303,7 @@ def load_kotowaza(conn: sqlite3.Connection, path: Path) -> None:
             parts[3].strip(),
             parts[4].strip(),
         )
+        bunsetsu = parts[5].strip() if len(parts) >= 6 else ""
 
         # 必須フィールド検証
         if not all((word, reading, meaning_raw, url)):
@@ -312,10 +316,10 @@ def load_kotowaza(conn: sqlite3.Connection, path: Path) -> None:
         cur = conn.execute(
             """
             INSERT OR IGNORE INTO kotowaza
-                (word, reading, meaning, variant, url)
-            VALUES (?, ?, ?, ?, ?);
+                (word, reading, meaning, variant, url, bunsetsu)
+            VALUES (?, ?, ?, ?, ?, ?);
             """,
-            (word, reading, meaning, variant, url),
+            (word, reading, meaning, variant, url, bunsetsu),
         )
         if cur.rowcount:
             inserted += 1

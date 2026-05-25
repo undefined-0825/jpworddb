@@ -19,12 +19,18 @@ class DbHelper {
     if (await File(dbPath).exists()) {
       final existingDb = await openDatabase(dbPath, readOnly: true);
       bool needsReplace = false;
-      for (final table in ['yojijukugo', 'kotowaza']) {
-        final cols = await existingDb.rawQuery('PRAGMA table_info($table)');
-        if (!cols.any((c) => c['name'] == 'level')) {
-          needsReplace = true;
-          break;
-        }
+      final yojiCols = await existingDb.rawQuery('PRAGMA table_info(yojijukugo)');
+      if (!yojiCols.any((c) => c['name'] == 'level')) {
+        needsReplace = true;
+      }
+      final kotowazaCols = await existingDb.rawQuery(
+        'PRAGMA table_info(kotowaza)',
+      );
+      if (!kotowazaCols.any((c) => c['name'] == 'level')) {
+        needsReplace = true;
+      }
+      if (!kotowazaCols.any((c) => c['name'] == 'bunsetsu')) {
+        needsReplace = true;
       }
       if (!needsReplace) {
         final result = await existingDb.rawQuery(
@@ -76,13 +82,13 @@ class DbHelper {
         "k.word IS NOT NULL AND k.word != '' AND length(k.word) >= 2";
     if (levelFilters == null || levelFilters.isEmpty) {
       return db.rawQuery(
-        'SELECT id, word, reading, meaning FROM kotowaza k '
+        'SELECT id, word, reading, meaning, bunsetsu FROM kotowaza k '
         'WHERE $baseWhere',
       );
     }
     final placeholders = List.filled(levelFilters.length, '?').join(', ');
     return db.rawQuery(
-      'SELECT k.id, k.word, k.reading, k.meaning '
+      'SELECT k.id, k.word, k.reading, k.meaning, k.bunsetsu '
       'FROM kotowaza k '
       'WHERE $baseWhere AND k.level IN ($placeholders)',
       levelFilters,

@@ -180,8 +180,8 @@ class _GameScreenState extends State<GameScreen> {
       _state.tapTile(tile);
 
       // 最後かめE斁E��目の入力時は、残り1斁E��を自動で配置する、E
-      final wordLength = _state.currentQuestion!.word.length;
-      if (wordLength >= 2 && _state.selectedTiles.length == wordLength - 1) {
+      final tileCount = _state.currentQuestion!.tileCount;
+      if (tileCount >= 2 && _state.selectedTiles.length == tileCount - 1) {
         CharTile? remaining;
         for (final t in _state.shuffledTiles) {
           if (!t.selected) {
@@ -194,7 +194,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
     });
-    if (_state.selectedTiles.length == _state.currentQuestion!.word.length) {
+    if (_state.selectedTiles.length == _state.currentQuestion!.tileCount) {
       if (_state.checkAnswer()) {
         _state.score++;
         if (_state.score == _state.totalQuestions) {
@@ -632,13 +632,15 @@ class _TileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dynamicWidth = (tile.char.length * charSize) + 24;
+    final tileWidth = dynamicWidth > size ? dynamicWidth : size;
     return GestureDetector(
       onTap: tile.selected ? null : onTap,
       child: AnimatedOpacity(
         opacity: tile.selected ? 0.3 : 1.0,
         duration: const Duration(milliseconds: 150),
         child: Container(
-          width: size,
+          width: tileWidth,
           height: size,
           decoration: BoxDecoration(
             color: tile.selected ? Colors.grey[300] : const Color(0xFF6D4C41),
@@ -684,8 +686,10 @@ class _CharBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dynamicWidth = (char.length * charSize) + 24;
+    final bubbleWidth = dynamicWidth > size ? dynamicWidth : size;
     return Container(
-      width: size,
+      width: bubbleWidth,
       height: size,
       decoration: BoxDecoration(
         color: filled ? const Color(0xFF8D6E63) : Colors.transparent,

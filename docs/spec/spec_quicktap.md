@@ -5,27 +5,15 @@
 Android/iPhone用スマホアプリ。
 実装は `src/quicktap/` 配下。
 
-四字熟語またはことわざを題材にしたタップゲーム。
 ランダムにシャッフルされた文字を正しい順番でタップし、語句を完成させる。
 プレイモードはタイムアタック（制限時間あり）とリラックス（時間無制限）の2種類。
 
-### 技術スタック
-
-| 項目 | 内容 |
-|------|------|
 | フレームワーク | Flutter |
 | 言語 | Dart |
 | DB | SQLite（`sqflite`） |
-| 状態管理 | StatefulWidget + GameState |
 | 対応OS | Android / iOS |
 
 ---
-
-## 2. 画面構成
-
-### 2.1 タイトル画面
-
-**目的**：カテゴリ選択と設定画面への導線
 
 #### UI要素
 
@@ -38,7 +26,6 @@ Android/iPhone用スマホアプリ。
 
 - 四字熟語 → 四字熟語メニュー画面
 - ことわざ → ことわざメニュー画面
-- 設定 → 設定画面
 
 ---
 
@@ -92,7 +79,8 @@ Android/iPhone用スマホアプリ。
 
 #### 表示仕様
 
-- 文字は1文字ずつタイル化
+- 四字熟語は1文字ずつタイル化
+- ことわざは `kotowaza.bunsetsu`（文節JSON）があれば文節単位でタイル化（未登録時は1文字単位にフォールバック）
 - 同一文字はインデックスで識別
 - 問題ごとにシャッフル
 - 元順と完全一致した場合は再シャッフル（最大10回）
@@ -206,6 +194,7 @@ Android/iPhone用スマホアプリ。
 以下のいずれかに該当する場合、ローカルDBを削除しアセットDBを再コピーする。
 
 - `yojijukugo` または `kotowaza` に `level` カラムが存在しない
+- `kotowaza` に `bunsetsu` カラムが存在しない
 - `yojijukugo.level` の非NULL件数が0
 
 ### 参照テーブル
@@ -215,7 +204,7 @@ Android/iPhone用スマホアプリ。
 
 ### 参照カラム
 
-- `id`, `word`, `reading`, `meaning`, `level`
+- `id`, `word`, `reading`, `meaning`, `level`, `bunsetsu`（ことわざのみ）
 
 ---
 
@@ -235,7 +224,7 @@ WHERE y.word IS NOT NULL
 ### ことわざ
 
 ```sql
-SELECT k.id, k.word, k.reading, k.meaning
+SELECT k.id, k.word, k.reading, k.meaning, k.bunsetsu
 FROM kotowaza k
 WHERE k.word IS NOT NULL
   AND k.word != ''

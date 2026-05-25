@@ -175,7 +175,8 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     variant    TEXT,
     url        TEXT    NOT NULL UNIQUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    level      INTEGER
+    level      INTEGER,
+    bunsetsu   TEXT
 );
 ```
 
@@ -191,6 +192,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
+| `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。例：`["下手の","長談義"]` |
 
 ---
 
@@ -252,10 +254,23 @@ CREATE INDEX IF NOT EXISTS idx_kotowaza_mini_reading ON kotowaza_mini(reading);
 ことわざ|よみがな|意味|異形|URL
 ```
 
+または（任意で文節列を含む）
+
+```
+ことわざ|よみがな|意味|異形|URL|文節JSON
+```
+
 - フィールド区切り：`|`（パイプ）
 - 1行1レコード
 - 改行コード：`\n`（LF）
 - 文字コード：UTF-8
+
+### 6.1.1 文節分割ツール
+
+- `src/split_kotowaza/split_kotowaza.py` を使用し、`kotowaza.bunsetsu` を登録する。
+- 既定では未登録レコードのみ更新する。
+- `--force` 指定時は既存値を上書きする。
+- 分割結果は JSON 配列文字列として保存する（例：`["朱に交われば","赤くなる"]`）。
 
 ### 6.2 投入順序
 
