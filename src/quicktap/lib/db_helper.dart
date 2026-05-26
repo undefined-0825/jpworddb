@@ -19,7 +19,9 @@ class DbHelper {
     if (await File(dbPath).exists()) {
       final existingDb = await openDatabase(dbPath, readOnly: true);
       bool needsReplace = false;
-      final yojiCols = await existingDb.rawQuery('PRAGMA table_info(yojijukugo)');
+      final yojiCols = await existingDb.rawQuery(
+        'PRAGMA table_info(yojijukugo)',
+      );
       if (!yojiCols.any((c) => c['name'] == 'level')) {
         needsReplace = true;
       }

@@ -20,8 +20,7 @@ class Question {
     required this.meaning,
     List<String>? units,
   }) : units = units != null && units.isNotEmpty ? units : word.split('') {
-    _chars = this.units
-        .indexed
+    _chars = this.units.indexed
         .map((e) => _CharItem(index: e.$1, char: e.$2))
         .toList();
   }
@@ -55,14 +54,14 @@ class Question {
   }
 }
 
-/// 同一文字をインデックスで識別するクラス
+/// 同一タイルをインデックスで識別するクラス
 class _CharItem {
   final int index;
   final String char;
   _CharItem({required this.index, required this.char});
 }
 
-/// ゲームで扱う文字タイル（シャッフル・選択状態を持つ）
+/// ゲームで扱うタイル（四字熟語は1文字、ことわざは文節）
 class CharTile {
   final int index;
   final String char;

@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
-| `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。例：`["下手の","長談義"]` |
+| `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。quicktap のことわざ並び替えで使用する。例：`["下手の","長談義"]` |
 
 ---
 
