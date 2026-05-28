@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'app_header.dart';
 import 'app_settings.dart';
 import 'db_helper.dart';
 import 'game_state.dart';
 import 'purchase_service.dart';
 import 'result_screen.dart';
-import 'settings_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final GameMode mode;
@@ -239,31 +239,11 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
+        appBar: const KotonohaHeader(),
         body: Stack(
           children: [
             Positioned.fill(
               child: Image.asset('assets/background.png', fit: BoxFit.cover),
-            ),
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8, right: 8),
-                  child: IconButton(
-                    iconSize: 30,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withAlpha(220),
-                      foregroundColor: const Color(0xFF6D4C41),
-                    ),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    ),
-                    icon: const Icon(Icons.settings),
-                    tooltip: '設定',
-                  ),
-                ),
-              ),
             ),
             const Center(child: CircularProgressIndicator()),
           ],
@@ -278,33 +258,14 @@ class _GameScreenState extends State<GameScreen> {
         : const Color(0xFF4E342E);
 
     return Scaffold(
+      appBar: const KotonohaHeader(),
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset('assets/background.png', fit: BoxFit.cover),
           ),
           SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, right: 8),
-                child: IconButton(
-                  iconSize: 30,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withAlpha(220),
-                    foregroundColor: const Color(0xFF6D4C41),
-                  ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  ),
-                  icon: const Icon(Icons.settings),
-                  tooltip: '設定',
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
+            top: false,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -503,6 +464,17 @@ class _GameScreenState extends State<GameScreen> {
                             padding: EdgeInsets.only(top: 20),
                             child: Text(
                               'タップして次へ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        if (!_answerResult!)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 20),
+                            child: Text(
+                              'タップして再挑戦',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white70,

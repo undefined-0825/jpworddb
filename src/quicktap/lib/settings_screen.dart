@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_header.dart';
 import 'app_settings.dart';
 import 'contact_page.dart';
 import 'purchase_service.dart';
@@ -46,17 +47,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF6D4C41),
-        foregroundColor: Colors.white,
-        title: const Text('設定', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+      appBar: const KotonohaHeader(enableSettingsNavigation: false),
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset('assets/background.png', fit: BoxFit.fill),
           ),
           SafeArea(
+            top: false,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: ListView(

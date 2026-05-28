@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'app_header.dart';
 import 'game_state.dart';
 import 'mode_menu_screen.dart';
-import 'settings_screen.dart';
 import 'version_update_service.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -86,12 +86,14 @@ class _TitleScreenState extends State<TitleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const KotonohaHeader(),
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset('assets/background.png', fit: BoxFit.fill),
           ),
           SafeArea(
+            top: false,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -128,27 +130,6 @@ class _TitleScreenState extends State<TitleScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, right: 8),
-                child: IconButton(
-                  iconSize: 30,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withAlpha(220),
-                    foregroundColor: const Color(0xFF6D4C41),
-                  ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  ),
-                  icon: const Icon(Icons.settings),
-                  tooltip: '設定',
                 ),
               ),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'app_header.dart';
 import 'game_screen.dart';
 import 'game_state.dart';
-import 'settings_screen.dart';
 import 'title_screen.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -31,33 +31,14 @@ class ResultScreen extends StatelessWidget {
     final accuracy = totalAsked == 0 ? 0.0 : (score / totalAsked * 100);
 
     return Scaffold(
+      appBar: const KotonohaHeader(),
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset('assets/background.png', fit: BoxFit.cover),
           ),
           SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, right: 8),
-                child: IconButton(
-                  iconSize: 30,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withAlpha(220),
-                    foregroundColor: const Color(0xFF6D4C41),
-                  ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  ),
-                  icon: const Icon(Icons.settings),
-                  tooltip: '設定',
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
+            top: false,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),

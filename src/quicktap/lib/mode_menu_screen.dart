@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'app_header.dart';
 import 'game_screen.dart';
 import 'game_state.dart';
-import 'settings_screen.dart';
 
 class _DifficultyOption {
   final int level;
@@ -29,8 +29,6 @@ class ModeMenuScreen extends StatefulWidget {
 class _ModeMenuScreenState extends State<ModeMenuScreen> {
   final Set<int> _selectedLevels = {1}; // Default to level 1 only
 
-  bool get _isYoji => widget.mode == GameMode.yoji;
-
   void _startGame(PlayMode playMode) {
     Navigator.push(
       context,
@@ -47,24 +45,9 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final canStart = _selectedLevels.isNotEmpty;
-    final title = _isYoji ? '四字熟語メニュー' : 'ことわざメニュー';
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF6D4C41),
-        foregroundColor: Colors.white,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-            icon: const Icon(Icons.settings),
-            tooltip: '設定',
-          ),
-        ],
-      ),
+      appBar: const KotonohaHeader(),
       body: Stack(
         children: [
           Positioned.fill(
@@ -78,6 +61,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
               bottom: 24,
             ),
             child: SafeArea(
+              top: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

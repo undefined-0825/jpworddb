@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'settings_screen.dart';
+
+import 'app_header.dart';
 
 class TermsOfServicePage extends StatelessWidget {
   const TermsOfServicePage({super.key});
@@ -7,30 +8,14 @@ class TermsOfServicePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF6D4C41),
-        foregroundColor: Colors.white,
-        title: const Text(
-          '利用規約',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-            icon: const Icon(Icons.settings),
-            tooltip: '設定',
-          ),
-        ],
-      ),
+      appBar: const KotonohaHeader(),
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset('assets/background.png', fit: BoxFit.fill),
           ),
           SafeArea(
+            top: false,
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: const [
