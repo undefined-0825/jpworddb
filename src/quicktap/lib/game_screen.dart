@@ -364,61 +364,86 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   ),
 
-                  // リセチE��・スキチE�E・終亁E�Eタン
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  // リセット・スキップ・終了ボタン
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
                     children: [
-                      TextButton.icon(
+                      ElevatedButton.icon(
                         onPressed: _answerResult != null
                             ? null
                             : () => setState(() => _state.resetInput()),
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Color(0xFF795548),
-                        ),
-                        label: const Text(
-                          'リセット',
-                          style: TextStyle(
-                            color: Color(0xFF795548),
-                            fontSize: 16,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEFEBE9),
+                          foregroundColor: const Color(0xFF795548),
+                          disabledBackgroundColor: const Color(0xFFE0E0E0),
+                          disabledForegroundColor: const Color(0xFFBDBDBD),
+                          elevation: 0,
+                          side: const BorderSide(color: Color(0xFFBCAAA4)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('リセット'),
                       ),
-                      const SizedBox(width: 16),
-                      TextButton.icon(
+                      ElevatedButton.icon(
                         onPressed: _answerResult != null ? null : _onSkip,
-                        icon: const Icon(
-                          Icons.skip_next,
-                          color: Color(0xFF9E9E9E),
-                        ),
-                        label: const Text(
-                          'スキップ',
-                          style: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontSize: 16,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEEEEEE),
+                          foregroundColor: const Color(0xFF616161),
+                          disabledBackgroundColor: const Color(0xFFE0E0E0),
+                          disabledForegroundColor: const Color(0xFFBDBDBD),
+                          elevation: 0,
+                          side: const BorderSide(color: Color(0xFFBDBDBD)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        icon: const Icon(Icons.skip_next),
+                        label: const Text('スキップ'),
                       ),
-                      if (widget.playMode == PlayMode.relax) ...[
-                        const SizedBox(width: 16),
-                        TextButton.icon(
+                      if (widget.playMode == PlayMode.relax)
+                        OutlinedButton.icon(
                           onPressed: () {
                             _state.isRunning = false;
                             _goToResult();
                           },
-                          icon: const Icon(
-                            Icons.stop_circle_outlined,
-                            color: Color(0xFFD32F2F),
-                          ),
-                          label: const Text(
-                            '終了',
-                            style: TextStyle(
-                              color: Color(0xFFD32F2F),
-                              fontSize: 16,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFD32F2F),
+                            side: const BorderSide(color: Color(0xFFD32F2F)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                          icon: const Icon(Icons.stop_circle_outlined),
+                          label: const Text('終了'),
                         ),
-                      ],
                     ],
                   ),
                   if (_isBannerAdLoaded && _bannerAd != null)

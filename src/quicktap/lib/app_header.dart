@@ -5,10 +5,7 @@ import 'settings_screen.dart';
 class KotonohaHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool enableSettingsNavigation;
 
-  const KotonohaHeader({
-    super.key,
-    this.enableSettingsNavigation = true,
-  });
+  const KotonohaHeader({super.key, this.enableSettingsNavigation = true});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -18,10 +15,7 @@ class KotonohaHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: const Color(0xFF6D4C41),
       foregroundColor: Colors.white,
-      title: const Text(
-        'コトノハ',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: const Text('コトノハ', style: TextStyle(fontWeight: FontWeight.bold)),
       actions: [
         IconButton(
           onPressed: enableSettingsNavigation
