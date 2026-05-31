@@ -11,8 +11,8 @@
 - [x] release 用の署名設定を用意する
   - `android/app/build.gradle.kts` を更新し、`key.properties` から release 署名情報を読む構成へ変更済み。
   - release ビルド実行前に `android/key.properties` の `CHANGE_ME_*` を実値へ置換する。
-- [ ] `version` / `buildNumber` を公開版に更新する
-  - [pubspec.yaml](../../src/quicktap/pubspec.yaml) の `version: 1.0.0+1` は現状の開発値。
+- [x] `version` / `buildNumber` を公開版に更新する
+  - [pubspec.yaml](../../src/quicktap/pubspec.yaml) は `version: 1.0.1+2` に更新済み。
   - ストア更新時はビルド番号を必ず上げる。
 - [ ] Play Console の申請項目を埋める
   - コンテンツレーティング
