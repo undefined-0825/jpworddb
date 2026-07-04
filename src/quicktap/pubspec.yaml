@@ -69,8 +69,8 @@ flutter:
     - assets/jpword.db
     - assets/background.png
     - assets/title_image.png
-    - assets/character_correct.png
-    - assets/character_wrong.png
+    - assets/OK_y.png
+    - assets/NG_y.png
     - assets/mode_select.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
 | `usage` | TEXT | NULL 可 | 場面・用途タグ。複数値は `/` 区切り（例：`機会をうかがう/我慢`） |
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
-| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
+| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
 
 ---
 
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `variant` | TEXT | NULL 可 | 異形（別表記・類句）。不明の場合は空文字 |
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
-| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（低）`2`（中）`3`（高） |
+| `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
 | `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。quicktap のことわざ並び替えで使用する。例：`["下手の","長談義"]` |
 
 ---
@@ -335,3 +335,4 @@ python src/db/build_db.py --skip-mini
 | 2026-04-26 | DBパスを `jpword.db` に変更・`source_master` テーブル追加・`yojijukugo` に `source_id` / `source_raw` カラム追加 |
 | 2026-04-27 | Mini版DB仕様追加（`jpword_mini.db`）・`yojijukugo_mini` / `kotowaza_mini` テーブル定義追加 |
 | 2026-05-10 | `yojijukugo` / `kotowaza` に `level` カラムを追加し、quicktap / set_level で `jpword.db` を利用する運用を明記 |
+| 2026-07-01 | 難易度仕様を4段階（`1` 簡単 / `2` 普通 / `3` 難しい / `4` 超高）に更新 |

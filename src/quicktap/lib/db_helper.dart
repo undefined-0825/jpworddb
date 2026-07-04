@@ -62,14 +62,14 @@ class DbHelper {
         "y.word IS NOT NULL AND y.word != '' AND length(y.word) >= 2";
     if (levelFilters == null || levelFilters.isEmpty) {
       return db.rawQuery(
-        "SELECT id, word, reading, meaning FROM yojijukugo y "
+        "SELECT id, word, reading, meaning, level FROM yojijukugo y "
         "WHERE $baseWhere",
       );
     }
 
     final placeholders = List.filled(levelFilters.length, '?').join(', ');
     return db.rawQuery(
-      "SELECT y.id, y.word, y.reading, y.meaning "
+      "SELECT y.id, y.word, y.reading, y.meaning, y.level "
       "FROM yojijukugo y "
       "WHERE $baseWhere AND y.level IN ($placeholders)",
       levelFilters,
@@ -84,13 +84,13 @@ class DbHelper {
         "k.word IS NOT NULL AND k.word != '' AND length(k.word) >= 2";
     if (levelFilters == null || levelFilters.isEmpty) {
       return db.rawQuery(
-        'SELECT id, word, reading, meaning, bunsetsu FROM kotowaza k '
+        'SELECT id, word, reading, meaning, bunsetsu, level FROM kotowaza k '
         'WHERE $baseWhere',
       );
     }
     final placeholders = List.filled(levelFilters.length, '?').join(', ');
     return db.rawQuery(
-      'SELECT k.id, k.word, k.reading, k.meaning, k.bunsetsu '
+      'SELECT k.id, k.word, k.reading, k.meaning, k.bunsetsu, k.level '
       'FROM kotowaza k '
       'WHERE $baseWhere AND k.level IN ($placeholders)',
       levelFilters,

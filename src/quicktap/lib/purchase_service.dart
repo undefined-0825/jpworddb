@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum RestorePurchaseResult { restored, alreadyOwned, notFound, failed }
+
 class PurchaseService {
   PurchaseService._();
   static final PurchaseService instance = PurchaseService._();
@@ -18,6 +20,7 @@ class PurchaseService {
   ProductDetails? _removeAdsProduct;
   bool _storeAvailable = false;
   bool _initialized = false;
+  Completer<RestorePurchaseResult>? _restoreCompleter;
 
   String? lastErrorMessage;
 
@@ -41,6 +44,9 @@ class PurchaseService {
     _storeAvailable = await _inAppPurchase.isAvailable();
     if (_storeAvailable) {
       await _queryProducts();
+      if (!adsDisabledNotifier.value) {
+        await restorePurchases(silent: true);
+      }
     }
 
     _initialized = true;
@@ -85,8 +91,39 @@ class PurchaseService {
     return _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
-  Future<void> restorePurchases() async {
-    await _inAppPurchase.restorePurchases();
+  Future<RestorePurchaseResult> restorePurchases({bool silent = false}) async {
+    if (!_storeAvailable) {
+      lastErrorMessage = 'ストアが利用できません。';
+      return RestorePurchaseResult.failed;
+    }
+
+    lastErrorMessage = null;
+    final completer = Completer<RestorePurchaseResult>();
+    _restoreCompleter = completer;
+
+    try {
+      await _inAppPurchase.restorePurchases();
+      final result = await completer.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          if (adsDisabledNotifier.value) {
+            return RestorePurchaseResult.alreadyOwned;
+          }
+          return RestorePurchaseResult.notFound;
+        },
+      );
+      return result;
+    } catch (error) {
+      lastErrorMessage = silent ? '$error' : '購入情報の復元に失敗しました。';
+      if (!completer.isCompleted) {
+        completer.complete(RestorePurchaseResult.failed);
+      }
+      return RestorePurchaseResult.failed;
+    } finally {
+      if (identical(_restoreCompleter, completer)) {
+        _restoreCompleter = null;
+      }
+    }
   }
 
   Future<void> _handlePurchaseUpdates(
@@ -95,6 +132,7 @@ class PurchaseService {
     for (final purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.error) {
         lastErrorMessage = purchaseDetails.error?.message ?? '購入処理に失敗しました。';
+        _completeRestoreIfPending(RestorePurchaseResult.failed);
       }
 
       final isRemoveAdsProduct =
@@ -105,11 +143,23 @@ class PurchaseService {
 
       if (isRemoveAdsProduct && isCompleted) {
         await _unlockRemoveAds();
+        _completeRestoreIfPending(
+          purchaseDetails.status == PurchaseStatus.restored
+              ? RestorePurchaseResult.restored
+              : RestorePurchaseResult.alreadyOwned,
+        );
       }
 
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
       }
+    }
+  }
+
+  void _completeRestoreIfPending(RestorePurchaseResult result) {
+    final completer = _restoreCompleter;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(result);
     }
   }
 

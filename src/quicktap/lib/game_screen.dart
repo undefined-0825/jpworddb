@@ -44,6 +44,27 @@ class _GameScreenState extends State<GameScreen> {
     return 60;
   }
 
+  String _levelSuffix(int level) {
+    switch (level) {
+      case 1:
+        return 'y';
+      case 2:
+        return 'c';
+      case 3:
+        return 'k';
+      case 4:
+        return 'a';
+      default:
+        return 'y';
+    }
+  }
+
+  String _resultImagePath({required bool isCorrect}) {
+    final level = _state.currentQuestion?.level ?? 1;
+    final suffix = _levelSuffix(level);
+    return isCorrect ? 'assets/OK_$suffix.png' : 'assets/NG_$suffix.png';
+  }
+
   void _onFontSizeChanged() {
     if (!mounted) return;
     setState(() {});
@@ -476,9 +497,7 @@ class _GameScreenState extends State<GameScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Image.asset(
-                          _answerResult!
-                              ? 'assets/character_correct.png'
-                              : 'assets/character_wrong.png',
+                          _resultImagePath(isCorrect: _answerResult!),
                           width: 160,
                           fit: BoxFit.contain,
                         ),

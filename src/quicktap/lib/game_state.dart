@@ -7,6 +7,7 @@ enum PlayMode { timeattack, relax }
 
 class Question {
   final int id;
+  final int level;
   final String word;
   final String reading;
   final String meaning;
@@ -15,6 +16,7 @@ class Question {
 
   Question({
     required this.id,
+    required this.level,
     required this.word,
     required this.reading,
     required this.meaning,
@@ -129,6 +131,7 @@ class GameState {
 
     currentQuestion = Question(
       id: row['id'] as int,
+      level: row['level'] as int? ?? 1,
       word: row['word'] as String,
       reading: row['reading'] as String? ?? '',
       meaning: row['meaning'] as String? ?? '',

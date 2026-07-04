@@ -26,6 +26,29 @@ class ResultScreen extends StatelessWidget {
     this.levelFilters,
   });
 
+  String _levelSuffix(int level) {
+    switch (level) {
+      case 1:
+        return 'y';
+      case 2:
+        return 'c';
+      case 3:
+        return 'k';
+      case 4:
+        return 'a';
+      default:
+        return 'y';
+    }
+  }
+
+  String _resultImagePath({required bool isCorrect}) {
+    final level = (levelFilters != null && levelFilters!.isNotEmpty)
+        ? levelFilters!.first
+        : 1;
+    final suffix = _levelSuffix(level);
+    return isCorrect ? 'assets/OK_$suffix.png' : 'assets/NG_$suffix.png';
+  }
+
   @override
   Widget build(BuildContext context) {
     final accuracy = totalAsked == 0 ? 0.0 : (score / totalAsked * 100);
@@ -55,9 +78,7 @@ class ResultScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Image.asset(
-                      accuracy >= 50
-                          ? 'assets/character_correct.png'
-                          : 'assets/character_wrong.png',
+                      _resultImagePath(isCorrect: accuracy >= 50),
                       width: 180,
                       fit: BoxFit.contain,
                     ),

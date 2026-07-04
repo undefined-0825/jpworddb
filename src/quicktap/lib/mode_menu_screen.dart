@@ -12,9 +12,10 @@ class _DifficultyOption {
 }
 
 const _difficultyOptions = [
-  _DifficultyOption(level: 1, label: '難易度低'),
-  _DifficultyOption(level: 2, label: '難易度中'),
-  _DifficultyOption(level: 3, label: '難易度高'),
+  _DifficultyOption(level: 1, label: '簡単'),
+  _DifficultyOption(level: 2, label: '普通'),
+  _DifficultyOption(level: 3, label: '難しい'),
+  _DifficultyOption(level: 4, label: '超高'),
 ];
 
 class ModeMenuScreen extends StatefulWidget {

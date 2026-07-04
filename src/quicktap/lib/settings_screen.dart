@@ -36,12 +36,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _restorePurchase() async {
     setState(() => _purchasing = true);
-    await _purchase.restorePurchases();
+    final result = await _purchase.restorePurchases();
     if (!mounted) return;
     setState(() => _purchasing = false);
+
+    final message = switch (result) {
+      RestorePurchaseResult.restored => '購入情報を復元しました。',
+      RestorePurchaseResult.alreadyOwned => 'この端末ではすでに広告を非表示にしています。',
+      RestorePurchaseResult.notFound => '復元できる購入情報が見つかりませんでした。',
+      RestorePurchaseResult.failed =>
+        _purchase.lastErrorMessage ?? '購入情報の復元に失敗しました。',
+    };
+
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('購入情報の復元を実行しました。')));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
