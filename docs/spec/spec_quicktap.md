@@ -40,6 +40,9 @@ Android/iPhone用スマホアプリ。
   - ことわざ時：ことわざメニュー
 - タイムアタックボタン
 - リラックスボタン
+- 開始方法選択
+  - 最初から
+  - つづきから
 - 難易度FilterChip
   - 簡単（level=1）
   - 普通（level=2）
@@ -50,12 +53,14 @@ Android/iPhone用スマホアプリ。
 #### 状態
 
 - 初期選択難易度：`{1}`（簡単のみ）
+- 初期開始方法：最初から
 - 開始条件：難易度が1つ以上選択されていること
 
 #### 遷移
 
 - タイムアタック/リラックス押下でゲーム画面へ遷移
 - 選択難易度（複数可）を `levelFilters` として引き渡す
+- 開始方法を `resumeProgress` として引き渡す
 
 ---
 
@@ -153,14 +158,18 @@ Android/iPhone用スマホアプリ。
   - `word != ''`
   - `length(word) >= 2`
 - 選択された `levelFilters` に一致する `level` のみ対象
+- `answered = 0`（未回答）のみ対象
 - 1プレイ内で重複出題を避ける
 - 使い切ったら既出管理をリセットして再利用
+- 開始方法が最初からの場合：カテゴリ内の `answered` を全件 `0` にリセットしてから開始
+- 開始方法がつづきからの場合：`answered` はリセットせず、未回答のみを出題
 
 ### 3.5 判定
 
 - 入力タイル列を連結した文字列 == 正解 `word` で正解
 - 正解時：
   - `score +1`
+  - 該当問題の `answered = 1`
   - 正解画像オーバーレイ表示
   - 語句・読みを表示
   - タップで次問題へ
@@ -195,13 +204,14 @@ Android/iPhone用スマホアプリ。
 ### 使用DB
 
 - `jpword.db`（アセット：`src/quicktap/assets/jpword.db`）
-- 起動時に端末ローカルへ配置し、readOnlyで利用
+- 起動時に端末ローカルへ配置し、読み書き可能モードで利用
 
 ### 起動時DB整合性チェック
 
 以下のいずれかに該当する場合、ローカルDBを削除しアセットDBを再コピーする。
 
 - `yojijukugo` または `kotowaza` に `level` カラムが存在しない
+- `yojijukugo` または `kotowaza` に `answered` カラムが存在しない
 - `kotowaza` に `bunsetsu` カラムが存在しない
 - `yojijukugo.level` の非NULL件数が0
 
@@ -212,7 +222,7 @@ Android/iPhone用スマホアプリ。
 
 ### 参照カラム
 
-- `id`, `word`, `reading`, `meaning`, `level`, `bunsetsu`（ことわざのみ）
+- `id`, `word`, `reading`, `meaning`, `level`, `answered`, `bunsetsu`（ことわざのみ）
 
 ---
 
@@ -226,6 +236,7 @@ FROM yojijukugo y
 WHERE y.word IS NOT NULL
   AND y.word != ''
   AND length(y.word) >= 2
+  AND IFNULL(y.answered, 0) = 0
   AND y.level IN (?, ...);
 ```
 
@@ -237,6 +248,7 @@ FROM kotowaza k
 WHERE k.word IS NOT NULL
   AND k.word != ''
   AND length(k.word) >= 2
+  AND IFNULL(k.answered, 0) = 0
   AND k.level IN (?, ...);
 ```
 

@@ -18,6 +18,8 @@ const _difficultyOptions = [
   _DifficultyOption(level: 4, label: '超高'),
 ];
 
+enum _StartOption { fresh, resume }
+
 class ModeMenuScreen extends StatefulWidget {
   final GameMode mode;
 
@@ -29,6 +31,7 @@ class ModeMenuScreen extends StatefulWidget {
 
 class _ModeMenuScreenState extends State<ModeMenuScreen> {
   final Set<int> _selectedLevels = {1}; // Default to level 1 only
+  _StartOption _startOption = _StartOption.fresh;
 
   void _startGame(PlayMode playMode) {
     Navigator.push(
@@ -38,6 +41,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
           mode: widget.mode,
           playMode: playMode,
           levelFilters: _selectedLevels.toList(),
+          resumeProgress: _startOption == _StartOption.resume,
         ),
       ),
     );
@@ -140,6 +144,56 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                         },
                       );
                     }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+                  const Text(
+                    '開始方法',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4E342E),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '最初からは回答済みをリセット、つづきからは未回答のみ出題します。',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF795548),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('最初から'),
+                        selected: _startOption == _StartOption.fresh,
+                        selectedColor: const Color(0xFFD7CCC8),
+                        backgroundColor: Colors.white.withAlpha(225),
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4E342E),
+                        ),
+                        onSelected: (_) {
+                          setState(() => _startOption = _StartOption.fresh);
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('つづきから'),
+                        selected: _startOption == _StartOption.resume,
+                        selectedColor: const Color(0xFFD7CCC8),
+                        backgroundColor: Colors.white.withAlpha(225),
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4E342E),
+                        ),
+                        onSelected: (_) {
+                          setState(() => _startOption = _StartOption.resume);
+                        },
+                      ),
+                    ],
                   ),
                   if (_selectedLevels.isEmpty)
                     const Padding(

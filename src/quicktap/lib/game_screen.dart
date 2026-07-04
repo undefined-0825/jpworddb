@@ -12,12 +12,14 @@ class GameScreen extends StatefulWidget {
   final GameMode mode;
   final PlayMode playMode;
   final List<int>? levelFilters;
+  final bool resumeProgress;
 
   const GameScreen({
     super.key,
     required this.mode,
     required this.playMode,
     this.levelFilters,
+    this.resumeProgress = false,
   });
 
   @override
@@ -123,18 +125,39 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _loadAndStart() async {
+    if (!widget.resumeProgress) {
+      await DbHelper.resetAnswered(
+        mode: widget.mode,
+      );
+    }
+
     final rows = widget.mode == GameMode.yoji
-        ? await DbHelper.fetchAllYoji(levelFilters: widget.levelFilters)
-        : await DbHelper.fetchAllKotowaza(levelFilters: widget.levelFilters);
+        ? await DbHelper.fetchAllYoji(
+            levelFilters: widget.levelFilters,
+            onlyUnanswered: true,
+          )
+        : await DbHelper.fetchAllKotowaza(
+            levelFilters: widget.levelFilters,
+            onlyUnanswered: true,
+          );
 
     if (!mounted) return;
+    _state.loadPool(rows);
+    final started = _state.nextQuestion();
+    if (!started) {
+      setState(() {
+        _state.isRunning = false;
+        _loading = false;
+      });
+      _goToResult();
+      return;
+    }
+
     setState(() {
-      _state.loadPool(rows);
-      final started = _state.nextQuestion();
       _state.remainingTime = _perQuestionLimitSeconds;
       _isLevelCleared = false;
       _loading = false;
-      _state.isRunning = started;
+      _state.isRunning = true;
     });
     if (widget.playMode == PlayMode.timeattack && _state.isRunning) {
       _startTimer();
@@ -188,12 +211,13 @@ class _GameScreenState extends State<GameScreen> {
           playMode: widget.playMode,
           initialTime: initialTime,
           levelFilters: widget.levelFilters,
+          resumeProgress: widget.resumeProgress,
         ),
       ),
     );
   }
 
-  void _onTileTap(CharTile tile) {
+  Future<void> _onTileTap(CharTile tile) async {
     if (!_state.isRunning || _answerResult != null || _revealWord != null) {
       return;
     }
@@ -217,6 +241,11 @@ class _GameScreenState extends State<GameScreen> {
     });
     if (_state.selectedTiles.length == _state.currentQuestion!.tileCount) {
       if (_state.checkAnswer()) {
+        await DbHelper.markAnswered(
+          mode: widget.mode,
+          id: _state.currentQuestion!.id,
+        );
+        if (!mounted) return;
         _state.score++;
         if (_state.score == _state.totalQuestions) {
           _isLevelCleared = true;

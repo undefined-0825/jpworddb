@@ -13,6 +13,7 @@ class ResultScreen extends StatelessWidget {
   final PlayMode playMode;
   final int? initialTime;
   final List<int>? levelFilters;
+  final bool resumeProgress;
 
   const ResultScreen({
     super.key,
@@ -24,6 +25,7 @@ class ResultScreen extends StatelessWidget {
     required this.playMode,
     required this.initialTime,
     this.levelFilters,
+    this.resumeProgress = false,
   });
 
   String _levelSuffix(int level) {
@@ -122,6 +124,7 @@ class ResultScreen extends StatelessWidget {
                               mode: mode,
                               playMode: playMode,
                               levelFilters: levelFilters,
+                              resumeProgress: resumeProgress,
                             ),
                           ),
                         ),

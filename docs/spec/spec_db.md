@@ -90,7 +90,8 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
     usage         TEXT,
     url           TEXT    NOT NULL UNIQUE,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    level         INTEGER
+    level         INTEGER,
+    answered      INTEGER NOT NULL DEFAULT 0
 );
 ```
 
@@ -109,6 +110,7 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
+| `answered` | INTEGER | NOT NULL | quicktap 用の回答済フラグ。`0`=未回答、`1`=正解済み |
 
 ---
 
@@ -176,6 +178,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     url        TEXT    NOT NULL UNIQUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     level      INTEGER,
+    answered   INTEGER NOT NULL DEFAULT 0,
     bunsetsu   TEXT
 );
 ```
@@ -192,6 +195,7 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
+| `answered` | INTEGER | NOT NULL | quicktap 用の回答済フラグ。`0`=未回答、`1`=正解済み |
 | `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。quicktap のことわざ並び替えで使用する。例：`["下手の","長談義"]` |
 
 ---
@@ -336,3 +340,4 @@ python src/db/build_db.py --skip-mini
 | 2026-04-27 | Mini版DB仕様追加（`jpword_mini.db`）・`yojijukugo_mini` / `kotowaza_mini` テーブル定義追加 |
 | 2026-05-10 | `yojijukugo` / `kotowaza` に `level` カラムを追加し、quicktap / set_level で `jpword.db` を利用する運用を明記 |
 | 2026-07-01 | 難易度仕様を4段階（`1` 簡単 / `2` 普通 / `3` 難しい / `4` 超高）に更新 |
+| 2026-07-05 | `yojijukugo` / `kotowaza` に `answered` カラムを追加し、quicktap の「最初から/つづきから」進行管理に対応 |

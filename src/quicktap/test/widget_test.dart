@@ -5,9 +5,12 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:quicktap/game_state.dart';
 import 'package:quicktap/main.dart';
+import 'package:quicktap/mode_menu_screen.dart';
 
 void main() {
   testWidgets('Title screen smoke test', (WidgetTester tester) async {
@@ -15,5 +18,16 @@ void main() {
 
     expect(find.text('四字熟語'), findsOneWidget);
     expect(find.text('ことわざ'), findsOneWidget);
+  });
+
+  testWidgets('Mode menu has progress start options', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ModeMenuScreen(mode: GameMode.yoji)),
+    );
+
+    expect(find.text('最初から'), findsOneWidget);
+    expect(find.text('つづきから'), findsOneWidget);
   });
 }
