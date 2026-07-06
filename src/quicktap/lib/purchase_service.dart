@@ -20,6 +20,7 @@ class PurchaseService {
   ProductDetails? _removeAdsProduct;
   bool _storeAvailable = false;
   bool _initialized = false;
+  Future<void>? _initFuture;
   Completer<RestorePurchaseResult>? _restoreCompleter;
 
   String? lastErrorMessage;
@@ -29,6 +30,12 @@ class PurchaseService {
   String get removeAdsPriceLabel => _removeAdsProduct?.price ?? '300円';
 
   Future<void> init() async {
+    if (_initialized) return;
+    _initFuture ??= _initInternal();
+    await _initFuture;
+  }
+
+  Future<void> _initInternal() async {
     if (_initialized) return;
 
     final prefs = await SharedPreferences.getInstance();
@@ -45,7 +52,7 @@ class PurchaseService {
     if (_storeAvailable) {
       await _queryProducts();
       if (!adsDisabledNotifier.value) {
-        await restorePurchases(silent: true);
+        await _restorePurchasesInternal(silent: true, ensureInitialized: false);
       }
     }
 
@@ -72,6 +79,8 @@ class PurchaseService {
   }
 
   Future<bool> purchaseRemoveAds() async {
+    await init();
+
     if (!_storeAvailable) {
       lastErrorMessage = 'ストアが利用できません。';
       return false;
@@ -92,6 +101,17 @@ class PurchaseService {
   }
 
   Future<RestorePurchaseResult> restorePurchases({bool silent = false}) async {
+    return _restorePurchasesInternal(silent: silent, ensureInitialized: true);
+  }
+
+  Future<RestorePurchaseResult> _restorePurchasesInternal({
+    required bool silent,
+    required bool ensureInitialized,
+  }) async {
+    if (ensureInitialized) {
+      await init();
+    }
+
     if (!_storeAvailable) {
       lastErrorMessage = 'ストアが利用できません。';
       return RestorePurchaseResult.failed;

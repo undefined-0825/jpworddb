@@ -7,6 +7,7 @@ import 'db_helper.dart';
 import 'game_state.dart';
 import 'purchase_service.dart';
 import 'result_screen.dart';
+import 'startup_service.dart';
 
 class GameScreen extends StatefulWidget {
   final GameMode mode;
@@ -120,11 +121,16 @@ class _GameScreenState extends State<GameScreen> {
     PurchaseService.instance.adsDisabledNotifier.addListener(
       _onAdsDisabledChanged,
     );
-    _initBannerAd();
+    StartupService.instance.ensureAdsReady().then((_) {
+      if (!mounted || _bannerAd != null) return;
+      _initBannerAd();
+    });
     _loadAndStart();
   }
 
   Future<void> _loadAndStart() async {
+    await StartupService.instance.ensureGameplayReady();
+
     if (!widget.resumeProgress) {
       await DbHelper.resetAnswered(
         mode: widget.mode,
@@ -305,7 +311,35 @@ class _GameScreenState extends State<GameScreen> {
             Positioned.fill(
               child: Image.asset('assets/background.png', fit: BoxFit.cover),
             ),
-            const Center(child: CircularProgressIndicator()),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'ゲームを準備しています',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4E342E),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    SizedBox(width: 220, child: LinearProgressIndicator()),
+                    SizedBox(height: 12),
+                    Text(
+                      'ホーム表示後にバックグラウンドで初期化しています。',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF795548),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       );

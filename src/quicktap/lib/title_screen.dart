@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'app_header.dart';
 import 'game_state.dart';
 import 'mode_menu_screen.dart';
+import 'startup_service.dart';
 import 'version_update_service.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -16,7 +19,11 @@ class _TitleScreenState extends State<TitleScreen> {
   @override
   void initState() {
     super.initState();
-    _checkVersionUpgrade();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      StartupService.instance.startBackgroundWarmup();
+      unawaited(_checkVersionUpgrade());
+    });
   }
 
   Future<void> _checkVersionUpgrade() async {

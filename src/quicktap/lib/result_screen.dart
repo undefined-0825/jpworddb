@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_header.dart';
 import 'game_screen.dart';
 import 'game_state.dart';
@@ -64,102 +65,115 @@ class ResultScreen extends StatelessWidget {
           ),
           SafeArea(
             top: false,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '結果',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4E342E),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Image.asset(
-                      _resultImagePath(isCorrect: accuracy >= 50),
-                      width: 180,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 24),
-                    _ResultCard(label: 'スコア（正解数）', value: '$score 問'),
-                    const SizedBox(height: 16),
-                    _ResultCard(
-                      label: '正答率',
-                      value: '${accuracy.toStringAsFixed(1)} %',
-                    ),
-                    const SizedBox(height: 16),
-                    _ResultCard(
-                      label: 'レベルクリア',
-                      value: isLevelCleared ? '達成' : '未達成',
-                    ),
-                    const SizedBox(height: 16),
-                    _ResultCard(label: '全問題数', value: '$totalQuestions 問'),
-                    const SizedBox(height: 16),
-                    if (playMode == PlayMode.timeattack)
-                      _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),
-                    const SizedBox(height: 48),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D4C41),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 18,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '結果',
+                          style: TextStyle(
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF4E342E),
                           ),
                         ),
-                        onPressed: () => Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GameScreen(
-                              mode: mode,
-                              playMode: playMode,
-                              levelFilters: levelFilters,
-                              resumeProgress: resumeProgress,
+                        const SizedBox(height: 24),
+                        Image.asset(
+                          _resultImagePath(isCorrect: accuracy >= 50),
+                          width: 180,
+                          fit: BoxFit.contain,
+                        ),
+                        // 画像セクションの終端を明確にする余白
+                        const SizedBox(height: 36),
+                        _ResultCard(
+                          label: 'スコア',
+                          value: '$score/$totalQuestions 問',
+                        ),
+                        const SizedBox(height: 16),
+                        _ResultCard(
+                          label: '正答率',
+                          value: '${accuracy.toStringAsFixed(1)} %',
+                        ),
+                        const SizedBox(height: 16),
+                        _ResultCard(
+                          label: 'レベルクリア',
+                          value: isLevelCleared ? '達成' : '未達成',
+                        ),
+                        const SizedBox(height: 16),
+                        _ResultCard(label: '全問題数', value: '$totalQuestions 問'),
+                        const SizedBox(height: 16),
+                        if (playMode == PlayMode.timeattack)
+                          _ResultCard(label: 'プレイ時間', value: '${initialTime!} 秒'),
+                        const SizedBox(height: 48),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6D4C41),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                            onPressed: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => GameScreen(
+                                  mode: mode,
+                                  playMode: playMode,
+                                  levelFilters: levelFilters,
+                                  resumeProgress: resumeProgress,
+                                ),
+                              ),
+                            ),
+                            child: const Text('再挑戦'),
                           ),
                         ),
-                        child: const Text('再挑戦'),
-                      ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6D4C41),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: () => Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const TitleScreen(),
+                              ),
+                              (_) => false,
+                            ),
+                            child: const Text('ホームへ戻る'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D4C41),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () => Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const TitleScreen(),
-                          ),
-                          (_) => false,
-                        ),
-                        child: const Text('タイトルへ戻る'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],
