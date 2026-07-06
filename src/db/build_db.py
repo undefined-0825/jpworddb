@@ -58,7 +58,9 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
     url           TEXT    NOT NULL UNIQUE,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     level         INTEGER,
-    answered      INTEGER NOT NULL DEFAULT 0
+    answered      INTEGER NOT NULL DEFAULT 0,
+    answered_timeattack INTEGER NOT NULL DEFAULT 0,
+    answered_relax INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -73,6 +75,8 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     level      INTEGER,
     answered   INTEGER NOT NULL DEFAULT 0,
+    answered_timeattack INTEGER NOT NULL DEFAULT 0,
+    answered_relax INTEGER NOT NULL DEFAULT 0,
     bunsetsu   TEXT
 );
 """

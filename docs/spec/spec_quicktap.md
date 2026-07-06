@@ -43,23 +43,21 @@ Android/iPhone用スマホアプリ。
 - 開始方法選択
   - 最初から
   - つづきから
-- 難易度FilterChip
+- 難易度ChoiceChip（単一選択）
   - 簡単（level=1）
   - 普通（level=2）
   - 難しい（level=3）
   - 超高（level=4）
-- 難易度未選択時エラーメッセージ
 
 #### 状態
 
-- 初期選択難易度：`{1}`（簡単のみ）
+- 初期選択難易度：`1`（簡単）
 - 初期開始方法：最初から
-- 開始条件：難易度が1つ以上選択されていること
 
 #### 遷移
 
 - タイムアタック/リラックス押下でゲーム画面へ遷移
-- 選択難易度（複数可）を `levelFilters` として引き渡す
+- 選択難易度（単一）を `levelFilters` として引き渡す
 - 開始方法を `resumeProgress` として引き渡す
 
 ---
@@ -80,7 +78,7 @@ Android/iPhone用スマホアプリ。
 - 操作ボタン
   - リセット
   - スキップ
-  - 終了（リラックスのみ）
+  - 一時中断（両モード）
 - 正誤オーバーレイ（キャラクター画像）
 
 #### 表示仕様
@@ -158,18 +156,22 @@ Android/iPhone用スマホアプリ。
   - `word != ''`
   - `length(word) >= 2`
 - 選択された `levelFilters` に一致する `level` のみ対象
-- `answered = 0`（未回答）のみ対象
+- プレイモードに対応する進捗列が `0`（未回答）のみ対象
 - 1プレイ内で重複出題を避ける
 - 使い切ったら既出管理をリセットして再利用
-- 開始方法が最初からの場合：カテゴリ内の `answered` を全件 `0` にリセットしてから開始
-- 開始方法がつづきからの場合：`answered` はリセットせず、未回答のみを出題
+- 開始方法が最初からの場合：カテゴリ内の対象モード進捗列を全件 `0` にリセットしてから開始
+- 開始方法がつづきからの場合：対象モード進捗列はリセットせず、未回答のみを出題
+  - タイムアタック：`answered_timeattack`
+  - リラックス：`answered_relax`
 
 ### 3.5 判定
 
 - 入力タイル列を連結した文字列 == 正解 `word` で正解
 - 正解時：
   - `score +1`
-  - 該当問題の `answered = 1`
+  - 該当問題の対象モード進捗列を `1` に更新
+    - タイムアタック：`answered_timeattack = 1`
+    - リラックス：`answered_relax = 1`
   - 正解画像オーバーレイ表示
   - 語句・読みを表示
   - タップで次問題へ
@@ -211,7 +213,8 @@ Android/iPhone用スマホアプリ。
 以下のいずれかに該当する場合、ローカルDBを削除しアセットDBを再コピーする。
 
 - `yojijukugo` または `kotowaza` に `level` カラムが存在しない
-- `yojijukugo` または `kotowaza` に `answered` カラムが存在しない
+- `yojijukugo` または `kotowaza` に `answered_timeattack` カラムが存在しない
+- `yojijukugo` または `kotowaza` に `answered_relax` カラムが存在しない
 - `kotowaza` に `bunsetsu` カラムが存在しない
 - `yojijukugo.level` の非NULL件数が0
 
@@ -222,7 +225,7 @@ Android/iPhone用スマホアプリ。
 
 ### 参照カラム
 
-- `id`, `word`, `reading`, `meaning`, `level`, `answered`, `bunsetsu`（ことわざのみ）
+- `id`, `word`, `reading`, `meaning`, `level`, `answered_timeattack`, `answered_relax`, `bunsetsu`（ことわざのみ）
 
 ---
 
@@ -236,7 +239,8 @@ FROM yojijukugo y
 WHERE y.word IS NOT NULL
   AND y.word != ''
   AND length(y.word) >= 2
-  AND IFNULL(y.answered, 0) = 0
+  AND IFNULL(y.answered_timeattack, 0) = 0  -- タイムアタック時
+  -- OR IFNULL(y.answered_relax, 0) = 0     -- リラックス時
   AND y.level IN (?, ...);
 ```
 
@@ -248,7 +252,8 @@ FROM kotowaza k
 WHERE k.word IS NOT NULL
   AND k.word != ''
   AND length(k.word) >= 2
-  AND IFNULL(k.answered, 0) = 0
+  AND IFNULL(k.answered_timeattack, 0) = 0  -- タイムアタック時
+  -- OR IFNULL(k.answered_relax, 0) = 0     -- リラックス時
   AND k.level IN (?, ...);
 ```
 

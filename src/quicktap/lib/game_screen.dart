@@ -128,15 +128,18 @@ class _GameScreenState extends State<GameScreen> {
     if (!widget.resumeProgress) {
       await DbHelper.resetAnswered(
         mode: widget.mode,
+        playMode: widget.playMode,
       );
     }
 
     final rows = widget.mode == GameMode.yoji
         ? await DbHelper.fetchAllYoji(
+            playMode: widget.playMode,
             levelFilters: widget.levelFilters,
             onlyUnanswered: true,
           )
         : await DbHelper.fetchAllKotowaza(
+            playMode: widget.playMode,
             levelFilters: widget.levelFilters,
             onlyUnanswered: true,
           );
@@ -243,6 +246,7 @@ class _GameScreenState extends State<GameScreen> {
       if (_state.checkAnswer()) {
         await DbHelper.markAnswered(
           mode: widget.mode,
+          playMode: widget.playMode,
           id: _state.currentQuestion!.id,
         );
         if (!mounted) return;
@@ -272,6 +276,12 @@ class _GameScreenState extends State<GameScreen> {
       _revealWord = word;
       _revealReading = reading;
     });
+  }
+
+  void _finishGame() {
+    _timer?.cancel();
+    _state.isRunning = false;
+    _goToResult();
   }
 
   @override
@@ -470,30 +480,26 @@ class _GameScreenState extends State<GameScreen> {
                         icon: const Icon(Icons.skip_next),
                         label: const Text('スキップ'),
                       ),
-                      if (widget.playMode == PlayMode.relax)
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            _state.isRunning = false;
-                            _goToResult();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFD32F2F),
-                            side: const BorderSide(color: Color(0xFFD32F2F)),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ),
+                      OutlinedButton.icon(
+                        onPressed: _finishGame,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFD32F2F),
+                          side: const BorderSide(color: Color(0xFFD32F2F)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
                           ),
-                          icon: const Icon(Icons.stop_circle_outlined),
-                          label: const Text('終了'),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
+                        icon: const Icon(Icons.stop_circle_outlined),
+                        label: const Text('一時中断'),
+                      ),
                     ],
                   ),
                   if (_isBannerAdLoaded && _bannerAd != null)

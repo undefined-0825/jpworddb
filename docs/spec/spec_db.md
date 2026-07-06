@@ -91,7 +91,9 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
     url           TEXT    NOT NULL UNIQUE,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     level         INTEGER,
-    answered      INTEGER NOT NULL DEFAULT 0
+    answered      INTEGER NOT NULL DEFAULT 0,
+    answered_timeattack INTEGER NOT NULL DEFAULT 0,
+    answered_relax INTEGER NOT NULL DEFAULT 0
 );
 ```
 
@@ -110,7 +112,9 @@ CREATE TABLE IF NOT EXISTS yojijukugo (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
-| `answered` | INTEGER | NOT NULL | quicktap 用の回答済フラグ。`0`=未回答、`1`=正解済み |
+| `answered` | INTEGER | NOT NULL | 旧quicktap用の回答済フラグ（互換維持列） |
+| `answered_timeattack` | INTEGER | NOT NULL | quicktap タイムアタック用の回答済フラグ。`0`=未回答、`1`=正解済み |
+| `answered_relax` | INTEGER | NOT NULL | quicktap リラックス用の回答済フラグ。`0`=未回答、`1`=正解済み |
 
 ---
 
@@ -179,6 +183,8 @@ CREATE TABLE IF NOT EXISTS kotowaza (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     level      INTEGER,
     answered   INTEGER NOT NULL DEFAULT 0,
+    answered_timeattack INTEGER NOT NULL DEFAULT 0,
+    answered_relax INTEGER NOT NULL DEFAULT 0,
     bunsetsu   TEXT
 );
 ```
@@ -195,7 +201,9 @@ CREATE TABLE IF NOT EXISTS kotowaza (
 | `url` | TEXT | NOT NULL | スクレイピング元URL。一意制約あり |
 | `created_at` | DATETIME | NOT NULL | レコード作成日時（UTC） |
 | `level` | INTEGER | NULL 可 | quicktap / set_level 用の難易度。`1`（簡単）`2`（普通）`3`（難しい）`4`（超高） |
-| `answered` | INTEGER | NOT NULL | quicktap 用の回答済フラグ。`0`=未回答、`1`=正解済み |
+| `answered` | INTEGER | NOT NULL | 旧quicktap用の回答済フラグ（互換維持列） |
+| `answered_timeattack` | INTEGER | NOT NULL | quicktap タイムアタック用の回答済フラグ。`0`=未回答、`1`=正解済み |
+| `answered_relax` | INTEGER | NOT NULL | quicktap リラックス用の回答済フラグ。`0`=未回答、`1`=正解済み |
 | `bunsetsu` | TEXT | NULL 可 | 文節配列のJSON文字列。quicktap のことわざ並び替えで使用する。例：`["下手の","長談義"]` |
 
 ---

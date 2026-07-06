@@ -70,7 +70,13 @@ flutter:
     - assets/background.png
     - assets/title_image.png
     - assets/OK_y.png
+    - assets/OK_c.png
+    - assets/OK_k.png
+    - assets/OK_a.png
     - assets/NG_y.png
+    - assets/NG_c.png
+    - assets/NG_k.png
+    - assets/NG_a.png
     - assets/mode_select.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

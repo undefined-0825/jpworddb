@@ -59,29 +59,46 @@ class VersionUpdateService {
     required String packageName,
     required Uri? reinstallUri,
   }) async {
-    if (reinstallUri != null && await launchUrl(reinstallUri)) {
-      return true;
+    Future<bool> tryLaunchExternal(Uri uri) async {
+      try {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        return false;
+      }
+    }
+
+    if (reinstallUri != null) {
+      final opened = await tryLaunchExternal(reinstallUri);
+      if (opened) return true;
     }
 
     if (Platform.isAndroid) {
       final webFallback = Uri.parse(
         'https://play.google.com/store/apps/details?id=$packageName',
       );
-      return launchUrl(webFallback, mode: LaunchMode.externalApplication);
+      final opened = await tryLaunchExternal(webFallback);
+      if (opened) return true;
+
+      // Last fallback for environments where external mode is rejected.
+      try {
+        return await launchUrl(webFallback);
+      } catch (_) {
+        return false;
+      }
     }
 
     if (Platform.isIOS && _iosAppStoreId.isNotEmpty) {
       final webFallback = Uri.parse(
         'https://apps.apple.com/app/id$_iosAppStoreId',
       );
-      return launchUrl(webFallback, mode: LaunchMode.externalApplication);
+      return tryLaunchExternal(webFallback);
     }
 
     if (Platform.isIOS) {
       final webFallback = Uri.https('apps.apple.com', '/jp/search', {
         'term': _appStoreSearchTerm,
       });
-      return launchUrl(webFallback, mode: LaunchMode.externalApplication);
+      return tryLaunchExternal(webFallback);
     }
 
     return false;

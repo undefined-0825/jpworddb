@@ -11,6 +11,12 @@ class DbHelper {
     return mode == GameMode.yoji ? 'yojijukugo' : 'kotowaza';
   }
 
+  static String _answeredColumn(PlayMode playMode) {
+    return playMode == PlayMode.timeattack
+        ? 'answered_timeattack'
+        : 'answered_relax';
+  }
+
   static Future<Database> get database async {
     _db ??= await _initDb();
     return _db!;
@@ -30,16 +36,10 @@ class DbHelper {
       if (!yojiCols.any((c) => c['name'] == 'level')) {
         needsReplace = true;
       }
-      if (!yojiCols.any((c) => c['name'] == 'answered')) {
-        needsReplace = true;
-      }
       final kotowazaCols = await existingDb.rawQuery(
         'PRAGMA table_info(kotowaza)',
       );
       if (!kotowazaCols.any((c) => c['name'] == 'level')) {
-        needsReplace = true;
-      }
-      if (!kotowazaCols.any((c) => c['name'] == 'answered')) {
         needsReplace = true;
       }
       if (!kotowazaCols.any((c) => c['name'] == 'bunsetsu')) {
@@ -62,21 +62,67 @@ class DbHelper {
       final bytes = data.buffer.asUint8List();
       await File(dbPath).writeAsBytes(bytes, flush: true);
     }
-    return openDatabase(dbPath);
+    final db = await openDatabase(dbPath);
+    await _ensureProgressColumns(db);
+    return db;
+  }
+
+  static Future<void> _ensureProgressColumns(Database db) async {
+    await _ensureProgressColumnsForTable(db, 'yojijukugo');
+    await _ensureProgressColumnsForTable(db, 'kotowaza');
+  }
+
+  static Future<void> _ensureProgressColumnsForTable(
+    Database db,
+    String table,
+  ) async {
+    final cols = await db.rawQuery('PRAGMA table_info($table)');
+    final colNames = cols
+        .map((c) => c['name'])
+        .whereType<String>()
+        .toSet();
+
+    final hasLegacyAnswered = colNames.contains('answered');
+    final hasTimeattack = colNames.contains('answered_timeattack');
+    final hasRelax = colNames.contains('answered_relax');
+
+    if (!hasTimeattack) {
+      await db.execute(
+        'ALTER TABLE $table ADD COLUMN answered_timeattack INTEGER NOT NULL DEFAULT 0',
+      );
+      if (hasLegacyAnswered) {
+        await db.execute(
+          'UPDATE $table SET answered_timeattack = IFNULL(answered, 0)',
+        );
+      }
+    }
+
+    if (!hasRelax) {
+      await db.execute(
+        'ALTER TABLE $table ADD COLUMN answered_relax INTEGER NOT NULL DEFAULT 0',
+      );
+      if (hasLegacyAnswered) {
+        await db.execute(
+          'UPDATE $table SET answered_relax = IFNULL(answered, 0)',
+        );
+      }
+    }
   }
 
   static Future<List<Map<String, dynamic>>> fetchAllYoji({
+    required PlayMode playMode,
     List<int>? levelFilters,
     bool onlyUnanswered = false,
   }) async {
     final db = await database;
+    final answeredColumn = _answeredColumn(playMode);
     final whereConditions = <String>[
       "y.word IS NOT NULL",
       "y.word != ''",
       'length(y.word) >= 2',
     ];
     if (onlyUnanswered) {
-      whereConditions.add('IFNULL(y.answered, 0) = 0');
+      whereConditions.add('IFNULL(y.$answeredColumn, 0) = 0');
     }
     final whereClause = whereConditions.join(' AND ');
     if (levelFilters == null || levelFilters.isEmpty) {
@@ -96,17 +142,19 @@ class DbHelper {
   }
 
   static Future<List<Map<String, dynamic>>> fetchAllKotowaza({
+    required PlayMode playMode,
     List<int>? levelFilters,
     bool onlyUnanswered = false,
   }) async {
     final db = await database;
+    final answeredColumn = _answeredColumn(playMode);
     final whereConditions = <String>[
       "k.word IS NOT NULL",
       "k.word != ''",
       'length(k.word) >= 2',
     ];
     if (onlyUnanswered) {
-      whereConditions.add('IFNULL(k.answered, 0) = 0');
+      whereConditions.add('IFNULL(k.$answeredColumn, 0) = 0');
     }
     final whereClause = whereConditions.join(' AND ');
     if (levelFilters == null || levelFilters.isEmpty) {
@@ -126,12 +174,14 @@ class DbHelper {
 
   static Future<void> markAnswered({
     required GameMode mode,
+    required PlayMode playMode,
     required int id,
   }) async {
     final db = await database;
+    final answeredColumn = _answeredColumn(playMode);
     await db.update(
       _tableName(mode),
-      {'answered': 1},
+      {answeredColumn: 1},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -139,17 +189,19 @@ class DbHelper {
 
   static Future<void> resetAnswered({
     required GameMode mode,
+    required PlayMode playMode,
     List<int>? levelFilters,
   }) async {
     final db = await database;
+    final answeredColumn = _answeredColumn(playMode);
     if (levelFilters == null || levelFilters.isEmpty) {
-      await db.update(_tableName(mode), {'answered': 0});
+      await db.update(_tableName(mode), {answeredColumn: 0});
       return;
     }
 
     final placeholders = List.filled(levelFilters.length, '?').join(', ');
     await db.rawUpdate(
-      'UPDATE ${_tableName(mode)} SET answered = 0 '
+      'UPDATE ${_tableName(mode)} SET $answeredColumn = 0 '
       'WHERE level IN ($placeholders)',
       levelFilters,
     );

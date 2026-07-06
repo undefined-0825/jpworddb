@@ -30,7 +30,7 @@ class ModeMenuScreen extends StatefulWidget {
 }
 
 class _ModeMenuScreenState extends State<ModeMenuScreen> {
-  final Set<int> _selectedLevels = {1}; // Default to level 1 only
+  int _selectedLevel = 1;
   _StartOption _startOption = _StartOption.fresh;
 
   void _startGame(PlayMode playMode) {
@@ -40,7 +40,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
         builder: (_) => GameScreen(
           mode: widget.mode,
           playMode: playMode,
-          levelFilters: _selectedLevels.toList(),
+          levelFilters: [_selectedLevel],
           resumeProgress: _startOption == _StartOption.resume,
         ),
       ),
@@ -49,7 +49,7 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final canStart = _selectedLevels.isNotEmpty;
+    const canStart = true;
 
     return Scaffold(
       appBar: const KotonohaHeader(),
@@ -109,37 +109,25 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                       color: Color(0xFF4E342E),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'チェックした難易度の問題だけを出題します。',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF795548),
-                    ),
-                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
                     children: _difficultyOptions.map((option) {
-                      final selected = _selectedLevels.contains(option.level);
-                      return FilterChip(
+                      final selected = _selectedLevel == option.level;
+                      return ChoiceChip(
                         label: Text(option.label),
                         selected: selected,
                         selectedColor: const Color(0xFFD7CCC8),
                         backgroundColor: Colors.white.withAlpha(225),
-                        checkmarkColor: const Color(0xFF4E342E),
                         labelStyle: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF4E342E),
                         ),
                         onSelected: (checked) {
+                          if (!checked) return;
                           setState(() {
-                            if (checked) {
-                              _selectedLevels.add(option.level);
-                            } else {
-                              _selectedLevels.remove(option.level);
-                            }
+                            _selectedLevel = option.level;
                           });
                         },
                       );
@@ -152,14 +140,6 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF4E342E),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '最初からは回答済みをリセット、つづきからは未回答のみ出題します。',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF795548),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -195,17 +175,6 @@ class _ModeMenuScreenState extends State<ModeMenuScreen> {
                       ),
                     ],
                   ),
-                  if (_selectedLevels.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 12),
-                      child: Text(
-                        '少なくとも1つの難易度を選択してください。',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFFD32F2F),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),

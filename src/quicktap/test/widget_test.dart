@@ -30,4 +30,25 @@ void main() {
     expect(find.text('最初から'), findsOneWidget);
     expect(find.text('つづきから'), findsOneWidget);
   });
+
+  testWidgets('Mode menu difficulty is single-select', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ModeMenuScreen(mode: GameMode.yoji)),
+    );
+
+    await tester.tap(find.text('普通'));
+    await tester.pumpAndSettle();
+
+    final easyChip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, '簡単'),
+    );
+    final normalChip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, '普通'),
+    );
+
+    expect(easyChip.selected, isFalse);
+    expect(normalChip.selected, isTrue);
+  });
 }
